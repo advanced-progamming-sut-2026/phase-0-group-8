@@ -1,6 +1,7 @@
 # Plants Vs Zombies
 Members :
 Abolfazl Sadeghi Bidgoli / 404106011
+Ali Asadi / 404105456
 
 
 ## Getting started
