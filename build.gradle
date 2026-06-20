@@ -29,6 +29,10 @@ configure(subprojects) {
   apply plugin: 'java-library'
   java.sourceCompatibility = 17
 
+  dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.1'
+  }
+
   // From https://lyze.dev/2021/04/29/libGDX-Internal-Assets-List/
   // The article can be helpful when using assets.txt in your project.
   tasks.register('generateAssetList') {

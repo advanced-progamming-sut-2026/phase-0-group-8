@@ -4,6 +4,7 @@ public enum Tag {
     DAY, NIGHT,
     SHROOM,
     RAMP_UP,
+    WARM_UP,
     PEA,
     ICE,
     FIRE,

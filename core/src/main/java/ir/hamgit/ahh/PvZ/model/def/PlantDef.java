@@ -1,0 +1,123 @@
+package ir.hamgit.ahh.PvZ.model.def;
+
+import com.fasterxml.jackson.annotation.*;
+import ir.hamgit.ahh.PvZ.model.enums.*;
+import java.util.*;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class PlantDef {
+    private final PlantType type;
+    private final PlantCategory category;
+    private final String displayName;
+    private final int sunCost;
+    private final int maxHp;
+    private final int rechargeTicks;
+    private final int damage;
+    private final Set<Tag> tags;
+    private final List<BehaviorType> behaviors;
+
+    private final int range;
+    private final int seedPacketsToUpgrade;
+    private final int coinsToUpgrade;
+    private final boolean canStackOn;
+    private final boolean canPlantOnWater;
+
+    @JsonCreator
+    public PlantDef(
+        @JsonProperty("category") PlantCategory category,
+        @JsonProperty("name") String displayName,
+        @JsonProperty("cost") int sunCost,
+        @JsonProperty("baseHp") int maxHp,
+        @JsonProperty("recharge") double rechargeSeconds,
+        @JsonProperty("damage") int damage,
+        @JsonProperty("tags") Set<Tag> tags,
+        @JsonProperty("abilityType") BehaviorType behavior
+    ) {
+        this.category = category;
+        this.displayName = displayName;
+
+        PlantType resolvedType = null;
+        if (displayName != null) {
+            String enumKey = displayName.toUpperCase().trim()
+                .replace(" ", "_")
+                .replace("-", "_");
+            resolvedType = PlantType.valueOf(enumKey);
+        }
+
+        this.type = resolvedType;
+        this.sunCost = sunCost;
+        this.maxHp = maxHp;
+
+        this.rechargeTicks = (int) (rechargeSeconds * 20);
+
+        this.damage = damage;
+        this.tags = tags != null ? tags : new HashSet<>();
+
+        this.behaviors = new ArrayList<>();
+        if (behavior != null) {
+            this.behaviors.add(behavior);
+        }
+
+        this.range = 0;
+        this.seedPacketsToUpgrade = 0;
+        this.coinsToUpgrade = 0;
+        this.canStackOn = false;
+        this.canPlantOnWater = false;
+    }
+
+    public PlantType getType() {
+        return type;
+    }
+
+    public PlantCategory getCategory() {
+        return category;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public int getSunCost() {
+        return sunCost;
+    }
+
+    public int getMaxHp() {
+        return maxHp;
+    }
+
+    public int getRechargeTicks() {
+        return rechargeTicks;
+    }
+
+    public int getDamage() {
+        return damage;
+    }
+
+    public int getRange() {
+        return range;
+    }
+
+    public Set<Tag> getTags() {
+        return tags;
+    }
+
+    public List<BehaviorType> getBehaviors() {
+        return behaviors;
+    }
+
+    public int getSeedPacketsToUpgrade() {
+        return seedPacketsToUpgrade;
+    }
+
+    public int getCoinsToUpgrade() {
+        return coinsToUpgrade;
+    }
+
+    public boolean canStackOn() {
+        return canStackOn;
+    }
+
+    public boolean canPlantOnWater() {
+        return canPlantOnWater;
+    }
+}
