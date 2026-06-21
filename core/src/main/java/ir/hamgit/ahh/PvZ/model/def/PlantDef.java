@@ -10,9 +10,9 @@ public class PlantDef {
     private final PlantCategory category;
     private final String displayName;
     private final int sunCost;
-    private final int maxHp;
+    private final double maxHp;
     private final int rechargeTicks;
-    private final int damage;
+    private final double damage;
     private final Set<Tag> tags;
     private final List<BehaviorType> behaviors;
     private final int range;
@@ -23,9 +23,9 @@ public class PlantDef {
         @JsonProperty("category") PlantCategory category,
         @JsonProperty("name") String displayName,
         @JsonProperty("cost") int sunCost,
-        @JsonProperty("baseHp") int maxHp,
+        @JsonProperty("baseHp") double maxHp,
         @JsonProperty("recharge") double rechargeSeconds,
-        @JsonProperty("damage") int damage,
+        @JsonProperty("damage") double damage,
         @JsonProperty("tags") Set<Tag> tags,
         @JsonProperty("abilityType") BehaviorType behavior
     ) {
@@ -73,7 +73,7 @@ public class PlantDef {
         return sunCost;
     }
 
-    public int getMaxHp() {
+    public double getMaxHp() {
         return maxHp;
     }
 
@@ -81,7 +81,7 @@ public class PlantDef {
         return rechargeTicks;
     }
 
-    public int getDamage() {
+    public double getDamage() {
         return damage;
     }
 
