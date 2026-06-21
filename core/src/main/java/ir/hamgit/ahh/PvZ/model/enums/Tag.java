@@ -1,21 +1,21 @@
 package ir.hamgit.ahh.PvZ.model.enums;
 
 public enum Tag {
-    DAY, NIGHT,
+    DAY,
+    NIGHT,
     SHROOM,
-    RAMP_UP,
     WARM_UP,
     PEA,
     ICE,
-    FIRE,
     STACK,
     CHARGE,
     MAGIC,
+    FIRE,
     POISON,
     WATER,
     AOE,
     TRAP,
-    MOVE_ZOMBIES,
-    SUN,
-    EXPLOSIVE;
+    MOVE_ZOMBIE,
+    EXPLOSIVE,
+    SUN
 }

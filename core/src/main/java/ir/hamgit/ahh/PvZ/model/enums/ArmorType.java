@@ -7,8 +7,8 @@ public enum ArmorType {
     HELMET(1600),
     SHOULDER(1600),
     BLOCK(2200),
-    NEWSPAPER(), // hp = normal zombie hp
-    BARREL(); // not given in doc
+    NEWSPAPER(23232), // hp = normal zombie hp
+    BARREL(22323); // not given in doc
 
     private final int armorHp;
 

@@ -15,12 +15,8 @@ public class PlantDef {
     private final int damage;
     private final Set<Tag> tags;
     private final List<BehaviorType> behaviors;
-
     private final int range;
-    private final int seedPacketsToUpgrade;
-    private final int coinsToUpgrade;
-    private final boolean canStackOn;
-    private final boolean canPlantOnWater;
+
 
     @JsonCreator
     public PlantDef(
@@ -59,10 +55,6 @@ public class PlantDef {
         }
 
         this.range = 0;
-        this.seedPacketsToUpgrade = 0;
-        this.coinsToUpgrade = 0;
-        this.canStackOn = false;
-        this.canPlantOnWater = false;
     }
 
     public PlantType getType() {
@@ -105,19 +97,11 @@ public class PlantDef {
         return behaviors;
     }
 
-    public int getSeedPacketsToUpgrade() {
-        return seedPacketsToUpgrade;
-    }
-
-    public int getCoinsToUpgrade() {
-        return coinsToUpgrade;
+    public boolean canPlantOnWater() {
+        return tags.contains(Tag.WATER);
     }
 
     public boolean canStackOn() {
-        return canStackOn;
-    }
-
-    public boolean canPlantOnWater() {
-        return canPlantOnWater;
+        return tags.contains(Tag.STACK);
     }
 }
