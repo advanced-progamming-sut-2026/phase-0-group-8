@@ -4,6 +4,7 @@ import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 
 public class PlantDef {
     private PlantType type;
+    private int sunCost;
 
     public boolean canStackOn() {
         return false;
@@ -14,5 +15,7 @@ public class PlantDef {
     public PlantType getType() {
         return type;
     }
+
+    public int getSunCost() { return sunCost; }
 
 }

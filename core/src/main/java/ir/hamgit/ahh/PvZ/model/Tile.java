@@ -9,13 +9,15 @@ public class Tile {
     private Plant plant;
 
 
-    public boolean plantHere(Plant p) {
-        if (this.plant != null && !p.getDef().canStackOn()){
-            return false;
+    public void plantHere(Plant p) {
+        if (plant == null){
+            plant = p;
+        }
+        else {
+            p.setUnderPlant(plant);
+            plant = p;
         }
 
-        this.plant = p;
-        return true;
     }
 
     public TileType getType() {
