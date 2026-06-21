@@ -3,6 +3,7 @@ package ir.hamgit.ahh.PvZ.model;
 public class Board {
     private Tile[][] tiles;
     private int sunAmount;
+    private int tickCount;
 
     public Tile getToile(int row, int col){
         return tiles[row][col];
@@ -13,5 +14,9 @@ public class Board {
     }
     public void decreaseSunAmount (int cost){
         sunAmount -= cost;
+    }
+
+    public void incrementTickCount(){
+        tickCount++;
     }
 }
