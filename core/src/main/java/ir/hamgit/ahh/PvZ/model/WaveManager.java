@@ -1,6 +1,13 @@
 package ir.hamgit.ahh.PvZ.model;
 
+import ir.hamgit.ahh.PvZ.model.def.ZombieDef;
+import ir.hamgit.ahh.PvZ.model.def.ZombieRegistry;
 import ir.hamgit.ahh.PvZ.model.enums.ChapterType;
+import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class WaveManager {
     private final ChapterType chapter;
@@ -38,5 +45,73 @@ public class WaveManager {
         cost = cost * ((double) difficulty / 3.0);
 
         return (int) cost;
+    }
+
+    /**
+     * Builds a list of random zombies whose total combined waveCost equals
+     * or is just under the calculated wave budget.
+     * * @param waveCost The total budget for this wave (from getWaveCost)
+     * @return A list of Zombie definitions ready to be spawned
+     */
+    public List<ZombieDef> buildWave(int waveCost) {
+        List<ZombieDef> waveZombies = new ArrayList<>();
+        List<ZombieType> availableTypes = getZombiesForChapter();
+
+        List<ZombieDef> availableDefs = new ArrayList<>();
+        int minCost = Integer.MAX_VALUE;
+
+        for (ZombieType type : availableTypes) {
+            ZombieDef def = ZombieRegistry.get(type);
+            if (def != null) {
+                availableDefs.add(def);
+                if (def.getWaveCost() < minCost) {
+                    minCost = def.getWaveCost();
+                }
+            }
+        }
+
+        if (availableDefs.isEmpty()) {
+            return waveZombies;
+        }
+
+        int currentCost = 0;
+        Random rand = new Random();
+
+        while (currentCost + minCost <= waveCost) {
+            ZombieDef randomZombie = availableDefs.get(rand.nextInt(availableDefs.size()));
+
+            if (currentCost + randomZombie.getWaveCost() <= waveCost) {
+                waveZombies.add(randomZombie);
+                currentCost += randomZombie.getWaveCost();
+            }
+        }
+
+        return waveZombies;
+    }
+
+    /**
+     * Filters and returns only the zombie types that are allowed to spawn in this chapter.
+     * * @return A list of valid ZombieTypes for the current chapter
+     */
+    private List<ZombieType> getZombiesForChapter() {
+        List<ZombieType> validZombies = new ArrayList<>();
+
+        List<ZombieDef> chapterZombies = ZombieRegistry.getForChapter(chapter.name());
+        if (chapterZombies != null) {
+            for (ZombieDef def : chapterZombies) {
+                validZombies.add(def.getType());
+            }
+        }
+
+        List<ZombieDef> commonZombies = ZombieRegistry.getForChapter("ALL");
+        if (commonZombies != null) {
+            for (ZombieDef def : commonZombies) {
+                if (!validZombies.contains(def.getType())) {
+                    validZombies.add(def.getType());
+                }
+            }
+        }
+
+        return validZombies;
     }
 }
