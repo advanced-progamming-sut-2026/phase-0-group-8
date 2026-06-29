@@ -20,8 +20,9 @@ public class PlantDef {
 
     @JsonCreator
     public PlantDef(
+        @JsonProperty("name") PlantType type,
         @JsonProperty("category") PlantCategory category,
-        @JsonProperty("name") String displayName,
+        @JsonProperty("displayName") String displayName,
         @JsonProperty("cost") int sunCost,
         @JsonProperty("baseHp") double maxHp,
         @JsonProperty("recharge") double rechargeSeconds,
@@ -29,23 +30,12 @@ public class PlantDef {
         @JsonProperty("tags") Set<Tag> tags,
         @JsonProperty("abilityType") BehaviorType behavior
     ) {
+        this.type = type;
         this.category = category;
-        this.displayName = displayName;
-
-        PlantType resolvedType = null;
-        if (displayName != null) {
-            String enumKey = displayName.toUpperCase().trim()
-                .replace(" ", "_")
-                .replace("-", "_");
-            resolvedType = PlantType.valueOf(enumKey);
-        }
-
-        this.type = resolvedType;
+        this.displayName = displayName != null ? displayName : (type != null ? type.name() : "Unknown");
         this.sunCost = sunCost;
         this.maxHp = maxHp;
-
         this.rechargeTicks = (int) (rechargeSeconds * 20);
-
         this.damage = damage;
         this.tags = tags != null ? tags : new HashSet<>();
 
@@ -53,7 +43,6 @@ public class PlantDef {
         if (behavior != null) {
             this.behaviors.add(behavior);
         }
-
         this.range = 0;
     }
 
