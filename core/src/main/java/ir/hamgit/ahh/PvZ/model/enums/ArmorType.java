@@ -1,20 +1,25 @@
 package ir.hamgit.ahh.PvZ.model.enums;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public enum ArmorType {
-    NONE(0),
-    CONE(370),
-    BUCKET(110),
-    HELMET(1600),
-    SHOULDER(1600),
-    BLOCK(2200),
-    NEWSPAPER(23232), // hp = normal zombie hp
-    BARREL(22323); // not given in doc
+    @JsonProperty("Cone")
+    CONE,
 
-    private final int armorHp;
+    @JsonProperty("Bucket")
+    BUCKET,
 
-    ArmorType(int hp) {
-        this.armorHp = hp;
-    }
+    @JsonProperty("Brick")
+    BRICK,
 
+    @JsonProperty("ShoulderArmor")
+    SHOULDER_ARMOR,
 
+    @JsonProperty("Crown")
+    CROWN,
+
+    @JsonProperty("Newspaper")
+    NEWSPAPER,
+
+    NONE
 }
