@@ -36,9 +36,15 @@ public class Armor {
         return currentHp;
     }
 
+    // GETTERS FROM ARMOR DEF
     public ArmorType getType() {
         return def != null ? def.getArmorType() : ArmorType.NONE;
     }
+
+    public double getBaseHealth() {
+        return def != null ? def.getBaseHealth() : 0.0;
+    }
+
 
     public boolean hasFlag(String flag) {
         return def != null && def.hasFlag(flag);

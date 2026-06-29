@@ -147,7 +147,7 @@ public enum PlantType {
     @JsonProperty("Sweet Potato")
     SWEET_POTATO,
 
-    @JsonProperty("Explode-o-Nut")
+    @JsonProperty("Explode-o-nut")
     EXPLODE_O_NUT,
 
     @JsonProperty("Pumpkin")

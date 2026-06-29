@@ -1,6 +1,8 @@
 package ir.hamgit.ahh.PvZ.model.entities;
 
 import ir.hamgit.ahh.PvZ.model.def.PlantDef;
+import ir.hamgit.ahh.PvZ.model.enums.PlantCategory;
+import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 
 public class Plant {
     private final PlantDef def;
@@ -47,5 +49,34 @@ public class Plant {
 
     public void setLastActionTick(int lastActionTick) {
         this.lastActionTick = lastActionTick;
+    }
+
+    // GETTERS FROM PLANT DEF
+    public PlantType getType() {
+        return def.getType();
+    }
+
+    public PlantCategory getCategory() {
+        return def.getCategory();
+    }
+
+    public int getSunCost() {
+        return def.getSunCost();
+    }
+
+    public double getMaxHp() {
+        return def.getMaxHp();
+    }
+
+    public int getRechargeTicks() {
+        return def.getRechargeTicks();
+    }
+
+    public double getDamage() {
+        return def.getDamage();
+    }
+
+    public int getRange() {
+        return def.getRange();
     }
 }
