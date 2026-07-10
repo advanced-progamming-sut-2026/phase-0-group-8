@@ -19,4 +19,7 @@ public class Board {
     public void incrementTickCount(){
         tickCount++;
     }
+
+    public void explodeRadioactiveSun(int x, int lane) {
+    }
 }

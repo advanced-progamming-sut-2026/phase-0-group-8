@@ -1,75 +1,112 @@
 package ir.hamgit.ahh.PvZ.model;
 
+import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.enums.SunType;
 
+/** A sun object, either produced by a plant or falling from the sky. */
 public class Sun {
+
+    private static final int FALL_TICKS = 50;
+    private static final int NORMAL_VALUE = 25;
+    private static final int SPECIAL_VALUE = 100;
+    private static final int RADIOACTIVE_VALUE = 150;
+
     private SunType type;
-    private final int targetX;
-    private final int targetY;
+    private final int x;
+    private final int lane;
+    private int ticksFalling;
+    private boolean onGround;
+    private boolean collected;
+    private final boolean producedByPlant;
+    private final int customValue;
 
-    private int fallTicksRemaining;
-    private final int maxFallTicks = 50;
+    public Sun(SunType type, int x, int lane) {
+        this(type, x, lane, false, -1);
+    }
 
-    private boolean isCollected;
+    public Sun(SunType type, int x, int lane, boolean producedByPlant) {
+        this(type, x, lane, producedByPlant, -1);
+    }
 
-    public Sun(SunType type, int targetX, int targetY, boolean fallsFromSky) {
+    /** {@code customValue} overrides the normal sky-sun value table - used for plant-produced suns
+     *  whose amount comes from {@code PlantDef.getSunProductionAmount()} (e.g. Twin Sunflower's 50). */
+    public Sun(SunType type, int x, int lane, boolean producedByPlant, int customValue) {
         this.type = type;
-        this.targetX = targetX;
-        this.targetY = targetY;
-        this.isCollected = false;
-
-        if (fallsFromSky) {
-            this.fallTicksRemaining = maxFallTicks;
-        } else {
-            this.fallTicksRemaining = 0;
-        }
+        this.x = x;
+        this.lane = lane;
+        this.producedByPlant = producedByPlant;
+        this.onGround = producedByPlant;
+        this.customValue = customValue;
     }
 
-    /**
-     * Called every tick by the Game Loop to simulate falling
-     */
     public void tick() {
-        if (fallTicksRemaining > 0) {
-            fallTicksRemaining--;
-
-            if (fallTicksRemaining == 0 && this.type == SunType.RADIOACTIVE) {
-                this.type = SunType.NORMAL;
-            }
+        if (onGround || producedByPlant || collected) {
+            return;
+        }
+        ticksFalling++;
+        if (ticksFalling >= FALL_TICKS) {
+            land();
         }
     }
 
-    public boolean isFalling() {
-        return fallTicksRemaining > 0;
+    private void land() {
+        onGround = true;
+        if (type == SunType.RADIOACTIVE) {
+            type = SunType.NORMAL;
+        }
+        System.out.printf("Sun reached the ground at position (%d, %d)%n", x, lane);
+    }
+
+    public int getValue() {
+        if (customValue >= 0) {
+            return customValue;
+        }
+        switch (type) {
+            case SPECIAL:
+                return SPECIAL_VALUE;
+            case RADIOACTIVE:
+                return RADIOACTIVE_VALUE;
+            case NORMAL:
+            default:
+                return NORMAL_VALUE;
+        }
+    }
+
+    public boolean isCollectable() {
+        return !collected;
+    }
+
+    public void explodeIfRadioactive(Board board) {
+        if (type == SunType.RADIOACTIVE) {
+            board.explodeRadioactiveSun(x, lane);
+        }
     }
 
     public SunType getType() {
         return type;
     }
 
-    public int getTargetX() {
-        return targetX;
+    public int getX() {
+        return x;
     }
 
-    public int getTargetY() {
-        return targetY;
+    public int getLane() {
+        return lane;
+    }
+
+    public boolean isOnGround() {
+        return onGround;
+    }
+
+    public boolean isProducedByPlant() {
+        return producedByPlant;
     }
 
     public boolean isCollected() {
-        return isCollected;
+        return collected;
     }
 
-    public void setCollected(boolean collected) {
-        isCollected = collected;
-    }
-
-    /**
-     * Determines the monetary value of the sun based on its current state
-     */
-    public int getSunValue() {
-        switch (type) {
-            case SPECIAL: return 100;
-            case NORMAL: return 25;
-            default: return 0;
-        }
+    public void markCollected() {
+        collected = true;
     }
 }
