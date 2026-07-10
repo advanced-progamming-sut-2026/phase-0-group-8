@@ -11,4 +11,8 @@ public class Plant {
     public void setUnderPlant(Plant underPlant) {
         this.underPlant = underPlant;
     }
+
+    public Plant getUnderPlant() {
+        return null;
+    }
 }

@@ -20,7 +20,7 @@ public class GameController {
         Tile tile = board.getToile(row, col);
         Result planting = TileController.getInstance().plantOnTile(plant, tile);
         if (planting.isSuccessful()){
-            tile.plantHere(plant);
+//            tile.plantHere(plant);
         }
         return planting;
     }
