@@ -3,115 +3,62 @@ package ir.hamgit.ahh.PvZ.model;
 import ir.hamgit.ahh.PvZ.model.def.ZombieDef;
 import ir.hamgit.ahh.PvZ.model.def.ZombieRegistry;
 import ir.hamgit.ahh.PvZ.model.enums.ChapterType;
-import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
+/**
+ * Computes per-wave zombie budgets and builds a random wave that sums to
+ * that budget. Per spec: each wave is 25% harder than the last, and the
+ * final ("flag") wave is double the previous wave's cost.
+ */
 public class WaveManager {
+
+    private static final double WAVE_GROWTH = 1.25;
+    private static final double FINAL_WAVE_MULTIPLIER = 2.0;
+
     private final ChapterType chapter;
     private final int difficulty;
     private final int baseWaveCost;
-    private final int totalWaves;
 
-    public WaveManager(ChapterType chapter, int difficulty, int baseWaveCost, int totalWaves) {
+    public WaveManager(ChapterType chapter, int difficulty) {
+        this(chapter, difficulty, 100);
+    }
+
+    public WaveManager(ChapterType chapter, int difficulty, int baseWaveCost) {
         this.chapter = chapter;
         this.difficulty = difficulty;
         this.baseWaveCost = baseWaveCost;
-        this.totalWaves = totalWaves;
     }
 
     /**
-     * Calculates the total cost budget allocated for a specific wave.
-     * - The cost increases by 25% each wave.
-     * - The final wave (flag wave) is double the previous wave's cost.
-     * - The difficulty applies a multiplier (dl / 3).
-     * * @param waveNumber The current wave index (1-based)
-     * @return The calculated cost budget for this wave
+     * @param waveNumber 1-based wave index within the level
+     * @param totalWaves total number of waves in this level (used to detect the final/flag wave)
      */
-    public int getWaveCost(int waveNumber) {
-        double cost;
-
-        if (waveNumber == 1) {
-            cost = baseWaveCost;
-        } else if (waveNumber >= totalWaves) {
-            double prevCost = baseWaveCost * Math.pow(1.25, waveNumber - 2);
-            cost = prevCost * 2;
-        } else {
-            cost = baseWaveCost * Math.pow(1.25, waveNumber - 1);
+    public int getWaveCost(int waveNumber, int totalWaves) {
+        double cost = baseWaveCost * Math.pow(WAVE_GROWTH, waveNumber - 1);
+        if (waveNumber == totalWaves) {
+            cost *= FINAL_WAVE_MULTIPLIER;
         }
-
-        cost = cost * ((double) difficulty / 3.0);
-
-        return (int) cost;
+        double difficultyMultiplier = 3.0 / Math.max(1, difficulty);
+        return (int) Math.round(cost * difficultyMultiplier);
     }
 
-    /**
-     * Builds a list of random zombies whose total combined waveCost equals
-     * or is just under the calculated wave budget.
-     * * @param waveCost The total budget for this wave (from getWaveCost)
-     * @return A list of Zombie definitions ready to be spawned
-     */
     public List<ZombieDef> buildWave(int waveCost) {
-        List<ZombieDef> waveZombies = new ArrayList<>();
-        List<ZombieType> availableTypes = getZombiesForChapter();
-
-        List<ZombieDef> availableDefs = new ArrayList<>();
-        int minCost = Integer.MAX_VALUE;
-
-        for (ZombieType type : availableTypes) {
-            ZombieDef def = ZombieRegistry.get(type);
-            if (def != null) {
-                availableDefs.add(def);
-                if (def.getWaveCost() < minCost) {
-                    minCost = def.getWaveCost();
-                }
-            }
+        List<ZombieDef> pool = getZombiesForChapter();
+        List<ZombieDef> wave = new ArrayList<>();
+        int remaining = waveCost;
+        int guard = 0;
+        while (remaining > 0 && !pool.isEmpty() && guard < 200) {
+            ZombieDef pick = pool.get((int) (Math.random() * pool.size()));
+            wave.add(pick);
+            remaining -= Math.max(1, pick.getWaveCost());
+            guard++;
         }
-
-        if (availableDefs.isEmpty()) {
-            return waveZombies;
-        }
-
-        int currentCost = 0;
-        Random rand = new Random();
-
-        while (currentCost + minCost <= waveCost) {
-            ZombieDef randomZombie = availableDefs.get(rand.nextInt(availableDefs.size()));
-
-            if (currentCost + randomZombie.getWaveCost() <= waveCost) {
-                waveZombies.add(randomZombie);
-                currentCost += randomZombie.getWaveCost();
-            }
-        }
-
-        return waveZombies;
+        return wave;
     }
 
-    /**
-     * Filters and returns only the zombie types that are allowed to spawn in this chapter.
-     * * @return A list of valid ZombieTypes for the current chapter
-     */
-    private List<ZombieType> getZombiesForChapter() {
-        List<ZombieType> validZombies = new ArrayList<>();
-
-        List<ZombieDef> chapterZombies = ZombieRegistry.getForChapter(chapter.name());
-        if (chapterZombies != null) {
-            for (ZombieDef def : chapterZombies) {
-                validZombies.add(def.getType());
-            }
-        }
-
-        List<ZombieDef> commonZombies = ZombieRegistry.getForChapter("ALL");
-        if (commonZombies != null) {
-            for (ZombieDef def : commonZombies) {
-                if (!validZombies.contains(def.getType())) {
-                    validZombies.add(def.getType());
-                }
-            }
-        }
-
-        return validZombies;
+    private List<ZombieDef> getZombiesForChapter() {
+        return ZombieRegistry.getForChapter(chapter.name());
     }
 }

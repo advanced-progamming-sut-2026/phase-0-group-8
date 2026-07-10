@@ -29,7 +29,7 @@ public class EconomyService {
      * Called every tick to handle passive sun generation from the sky.
      */
     public void spawnFallingSuns(Board board, int totalGameTicks) {
-       
+
     }
 
     /**
