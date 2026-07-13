@@ -1,5 +1,6 @@
 package ir.hamgit.ahh.PvZ.model.special;
 
+import ir.hamgit.ahh.PvZ.minigame.BeghouledGame;
 import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.Plant;
 
@@ -12,9 +13,9 @@ import ir.hamgit.ahh.PvZ.model.Plant;
  */
 public class BeghouledLevelHandler extends SpecialLevelHandler {
 
-    private minigame.BeghouledGame game;
+    private BeghouledGame game;
 
-    public void setGame(minigame.BeghouledGame game) {
+    public void setGame(BeghouledGame game) {
         this.game = game;
     }
 
