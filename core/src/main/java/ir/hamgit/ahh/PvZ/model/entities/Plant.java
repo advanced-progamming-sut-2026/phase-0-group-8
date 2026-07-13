@@ -1,8 +1,13 @@
 package ir.hamgit.ahh.PvZ.model.entities;
 
+import ir.hamgit.ahh.PvZ.model.behavior.BehaviorFactory;
+import ir.hamgit.ahh.PvZ.model.behavior.BoardContext;
+import ir.hamgit.ahh.PvZ.model.behavior.plant.PlantBehavior;
 import ir.hamgit.ahh.PvZ.model.def.PlantDef;
 import ir.hamgit.ahh.PvZ.model.enums.PlantCategory;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
+
+import java.util.List;
 
 public class Plant {
     private final PlantDef def;
@@ -10,6 +15,7 @@ public class Plant {
     private final int col;
     private double currentHp;
     private int lastActionTick;
+    private final List<PlantBehavior> behaviors;
 
     public Plant(PlantDef def, int row, int col) {
         this.def = def;
@@ -17,6 +23,20 @@ public class Plant {
         this.col = col;
         this.currentHp = def.getMaxHp();
         this.lastActionTick = 0;
+
+        this.behaviors = BehaviorFactory.createBehaviors(def.getBehaviors());
+    }
+
+    public void onPlaced(BoardContext ctx) {
+        for (PlantBehavior behavior : behaviors) {
+            behavior.onPlanted(this, ctx);
+        }
+    }
+
+    public void step(BoardContext ctx, int currentTick) {
+        for (PlantBehavior behavior : behaviors) {
+            behavior.onTick(this, ctx, currentTick);
+        }
     }
 
     public void takeDamage(double damage) {
