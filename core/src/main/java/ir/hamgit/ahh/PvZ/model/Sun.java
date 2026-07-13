@@ -3,6 +3,7 @@ package ir.hamgit.ahh.PvZ.model;
 import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.enums.SunType;
 
+
 /** A sun object, either produced by a plant or falling from the sky. */
 public class Sun {
 
