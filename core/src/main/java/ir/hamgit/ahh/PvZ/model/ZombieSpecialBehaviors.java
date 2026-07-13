@@ -1,6 +1,5 @@
 package ir.hamgit.ahh.PvZ.model;
 
-import ir.hamgit.ahh.PvZ.model.entities.Plant;
 import ir.hamgit.ahh.PvZ.model.enums.ArmorType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
 
@@ -36,7 +35,7 @@ class ZombieSpecialBehaviors {
     private static final int HOOK_INTERVAL_TICKS = 40;
     private static final int OCTOPUS_THROW_INTERVAL_TICKS = 90;
 
-    void run(Zombie zombie, model.Board board) {
+    void run(Zombie zombie,Board board) {
         switch (zombie.getDef().getType()) {
             case GARGANTUAR -> runGargantuarBehavior(zombie, board);
             case ARCADE, TROGLOBITE -> runPushObjectBehavior(zombie, board);
@@ -68,7 +67,7 @@ class ZombieSpecialBehaviors {
         return false;
     }
 
-    private void runGargantuarBehavior(Zombie zombie, model.Board board) {
+    private void runGargantuarBehavior(Zombie zombie,Board board) {
         boolean atHalfHealth = zombie.getCurrentHp() <= zombie.getDef().getMaxHp() / 2;
         if (!zombie.hasThrownImp() && atHalfHealth) {
             board.spawnZombieAt(ZombieType.IMP, zombie.getLane(), 2);
@@ -76,14 +75,14 @@ class ZombieSpecialBehaviors {
         }
     }
 
-    private void runPushObjectBehavior(Zombie zombie, model.Board board) {
+    private void runPushObjectBehavior(Zombie zombie,Board board) {
         Plant p = board.getPlantInFrontOf(zombie);
         if (p != null) {
             board.destroyPlantInstantly(p);
         }
     }
 
-    private void runTurquoiseBehavior(Zombie zombie, model.Board board) {
+    private void runTurquoiseBehavior(Zombie zombie,Board board) {
         Map<String, Integer> effects = zombie.getActiveEffects();
         if (effects.containsKey("stealing")) {
             continueStealing(zombie, board);
@@ -92,7 +91,7 @@ class ZombieSpecialBehaviors {
         }
     }
 
-    private void continueStealing(Zombie zombie, model.Board board) {
+    private void continueStealing(Zombie zombie,Board board) {
         Map<String, Integer> effects = zombie.getActiveEffects();
         int ticksLeft = effects.get("stealing") - 1;
         if (ticksLeft % STEAL_TICK_INTERVAL == 0) {
@@ -113,13 +112,13 @@ class ZombieSpecialBehaviors {
         }
     }
 
-    private void runPianistBehavior(Zombie zombie, model.Board board) {
+    private void runPianistBehavior(Zombie zombie,Board board) {
         if (tickTimer(zombie, "pianoShuffle", PIANO_SHUFFLE_INTERVAL_TICKS)) {
             board.shuffleRandomZombieRow();
         }
     }
 
-    private void runBarrelRollerBehavior(Zombie zombie, model.Board board) {
+    private void runBarrelRollerBehavior(Zombie zombie,Board board) {
         boolean barrelAlive = zombie.getArmors().stream()
             .anyMatch(a -> a.getType() == ArmorType.BARREL && !a.isDestroyed());
         if (!barrelAlive && !zombie.isImpsSpawned() && zombie.isHadBarrel()) {
@@ -130,31 +129,31 @@ class ZombieSpecialBehaviors {
         zombie.setHadBarrel(barrelAlive || zombie.isHadBarrel());
     }
 
-    private void runRaZombieBehavior(Zombie zombie, model.Board board) {
+    private void runRaZombieBehavior(Zombie zombie,Board board) {
         if (tickTimer(zombie, "raSteal", STEAL_TICK_INTERVAL)) {
             zombie.addStolenSun(board.stealNearestFallingSun(zombie.getLane(), zombie.getX()));
         }
     }
 
-    private void runTombraiserBehavior(Zombie zombie, model.Board board) {
+    private void runTombraiserBehavior(Zombie zombie,Board board) {
         if (tickTimer(zombie, "boneThrow", BONE_THROW_INTERVAL_TICKS)) {
             board.spawnRandomGraves(2);
         }
     }
 
-    private void runHunterBehavior(Zombie zombie, model.Board board) {
+    private void runHunterBehavior(Zombie zombie,Board board) {
         if (tickTimer(zombie, "iceThrow", ICE_THROW_INTERVAL_TICKS)) {
             board.throwIceAtNearestPlant(zombie);
         }
     }
 
-    private void runFishermanBehavior(Zombie zombie, model.Board board) {
+    private void runFishermanBehavior(Zombie zombie,Board board) {
         if (tickTimer(zombie, "hook", HOOK_INTERVAL_TICKS)) {
             board.hookPlantTowards(zombie);
         }
     }
 
-    private void runOctopusBehavior(Zombie zombie, model.Board board) {
+    private void runOctopusBehavior(Zombie zombie,Board board) {
         if (tickTimer(zombie, "octopusThrow", OCTOPUS_THROW_INTERVAL_TICKS)) {
             board.throwOctopusAtPlant(zombie);
         }
@@ -168,13 +167,13 @@ class ZombieSpecialBehaviors {
         }
     }
 
-    private void runWizardBehavior(Zombie zombie, model.Board board) {
+    private void runWizardBehavior(Zombie zombie,Board board) {
         if (tickTimer(zombie, "wizardCast", WIZARD_CAST_INTERVAL_TICKS)) {
             board.turnRandomPlantIntoCat(zombie.getLane(), zombie);
         }
     }
 
-    private void runKingBehavior(Zombie zombie, model.Board board) {
+    private void runKingBehavior(Zombie zombie,Board board) {
         if (tickTimer(zombie, "kingUpgrade", KING_UPGRADE_INTERVAL_TICKS)) {
             board.upgradeNearbyZombieToKnight(zombie);
         }

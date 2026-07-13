@@ -60,7 +60,7 @@ public class Plant {
     private static final int MAGNET_INTERVAL_TICKS = 20;
     private int magnetCooldownTicks;
 
-    public void tick(model.Board board) {
+    public void tick(Board board) {
         if (!isAlive()) {
             return;
         }
@@ -75,7 +75,7 @@ public class Plant {
         tickMagnetism(board);
     }
 
-    private void tickMagnetism(model.Board board) {
+    private void tickMagnetism(Board board) {
         if (!def.hasBehavior(BehaviorType.STEAL_ARMOR)) {
             return;
         }
@@ -100,7 +100,7 @@ public class Plant {
         }
     }
 
-    private void tickExplosives(model.Board board) {
+    private void tickExplosives(Board board) {
         if (triggeredExplosion) {
             return;
         }
@@ -111,13 +111,13 @@ public class Plant {
         }
     }
 
-    private void tickTrapExplosive(model.Board board) {
+    private void tickTrapExplosive(Board board) {
         if (armed && board.hasAdjacentZombie(x, lane)) {
             explode(board);
         }
     }
 
-    private void tickFuseExplosive(model.Board board) {
+    private void tickFuseExplosive(Board board) {
         if (fuseTicksRemaining > 0) {
             fuseTicksRemaining--;
             if (fuseTicksRemaining <= 0) {
@@ -126,7 +126,7 @@ public class Plant {
         }
     }
 
-    private void explode(model.Board board) {
+    private void explode(Board board) {
         triggeredExplosion = true;
         boolean wholeRow = def.hasBehavior(BehaviorType.EXPLODE_AREA) && def.getAoeRadius() >= 9;
         int radius = wholeRow ? 9 : Math.max(1, def.getAoeRadius());
@@ -134,7 +134,7 @@ public class Plant {
         board.destroyPlantInstantly(this);
     }
 
-    private void tickShooting(model.Board board) {
+    private void tickShooting(Board board) {
         if (!canShoot() || shootCooldownTicks > 0) {
             return;
         }
@@ -151,7 +151,7 @@ public class Plant {
             || def.hasBehavior(BehaviorType.SHOOT_POISON);
     }
 
-    private void fireProjectile(model.Board board) {
+    private void fireProjectile(Board board) {
         int shots = boosted ? 2 : 1;
         for (int i = 0; i < shots; i++) {
             board.spawnProjectile(this);
@@ -161,14 +161,14 @@ public class Plant {
 
     private static final int MELEE_DIGEST_TICKS = 150;
 
-    private void tryMeleeAttack(model.Board board) {
+    private void tryMeleeAttack(Board board) {
         if (board.hasAdjacentZombie(x, lane)) {
             board.dealAreaDamageToZombies(x, lane, 0, Integer.MAX_VALUE / 2);
             shootCooldownTicks = MELEE_DIGEST_TICKS;
         }
     }
 
-    private void tickSunProduction(model.Board board) {
+    private void tickSunProduction(Board board) {
         if (!def.hasBehavior(BehaviorType.PRODUCE_SUN) || hasUncollectedSun) {
             return;
         }
@@ -187,7 +187,7 @@ public class Plant {
 
     /** Plant Food: boosts for a while and, per spec, makes producers give sun and
      *  detonates fuse-explosives immediately. */
-    public void applyPlantFood(model.Board board) {
+    public void applyPlantFood(Board board) {
         boosted = true;
         boostTicksRemaining = PLANT_FOOD_BOOST_TICKS;
         if (def.hasBehavior(BehaviorType.PRODUCE_SUN)) {

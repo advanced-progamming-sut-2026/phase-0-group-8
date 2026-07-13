@@ -1,7 +1,8 @@
 package ir.hamgit.ahh.PvZ.model.special;
 
+import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.Zombie;
-import model.Board;
+
 
 
 /**

@@ -8,7 +8,7 @@ import ir.hamgit.ahh.PvZ.model.enums.TileType;
 
 /**
  * Planting rules (tile eligibility, stacking, water/lily-pad handling),
- * plucking, and the plant-food inventory. Split out of {@link model.Board} purely
+ * plucking, and the plant-food inventory. Split out of {@link Board} purely
  * to keep Board under the project's class-length Checkstyle/PMD guideline;
  * reaches board state through Board's own public API plus a couple of
  * narrow package-private mutators ({@code Board.spendSun},
@@ -17,7 +17,7 @@ import ir.hamgit.ahh.PvZ.model.enums.TileType;
  */
 class PlantingOps {
 
-    boolean plantPlant(model.Board board, PlantType type, int x, int lane) {
+    boolean plantPlant(Board board, PlantType type, int x, int lane) {
         PlantDef def = PlantRegistry.get(type);
         if (def == null || !board.isInBounds(x, lane) || board.getSunAmount() < def.getSunCost()) {
             return false;
@@ -29,12 +29,12 @@ class PlantingOps {
         return true;
     }
 
-    boolean plantForFree(model.Board board, PlantType type, int x, int lane) {
+    boolean plantForFree(Board board, PlantType type, int x, int lane) {
         PlantDef def = PlantRegistry.get(type);
         return def != null && board.isInBounds(x, lane) && place(board, def, x, lane);
     }
 
-    private boolean place(model.Board board, PlantDef def, int x, int lane) {
+    private boolean place(Board board, PlantDef def, int x, int lane) {
         Tile tile = board.getTileAt(x, lane);
         if (tile == null || !canPlaceOn(tile, def)) {
             return false;
@@ -56,7 +56,7 @@ class PlantingOps {
         return def.isCanStackOn() || tile.getPlant().getDef().isCanStackOn();
     }
 
-    boolean pluckPlant(model.Board board, int x, int lane) {
+    boolean pluckPlant(Board board, int x, int lane) {
         Tile tile = board.getTileAt(x, lane);
         if (tile == null || tile.isEmpty()) {
             return false;
@@ -65,7 +65,7 @@ class PlantingOps {
         return true;
     }
 
-    boolean feedPlant(model.Board board, int x, int lane) {
+    boolean feedPlant(Board board, int x, int lane) {
         Tile tile = board.getTileAt(x, lane);
         if (tile == null || tile.isEmpty() || !board.consumePlantFoodIfAvailable()) {
             return false;
@@ -74,13 +74,13 @@ class PlantingOps {
         return true;
     }
 
-    void grantPlantFood(model.Board board) {
+    void grantPlantFood(Board board) {
         board.incrementPlantFoodCount();
         System.out.printf("The glowing zombie dropeed a plant food; you have %d plant foods now.%n",
             board.getPlantFoodCount());
     }
 
-    void cheatAddPlantFood(model.Board board) {
+    void cheatAddPlantFood(Board board) {
         board.incrementPlantFoodCount();
     }
 }

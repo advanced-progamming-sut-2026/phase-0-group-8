@@ -1,6 +1,5 @@
 package ir.hamgit.ahh.PvZ.model;
 
-import ir.hamgit.ahh.PvZ.model.entities.Plant;
 import ir.hamgit.ahh.PvZ.model.enums.ArmorType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
 
@@ -16,7 +15,7 @@ import java.util.Map;
  * Wizard dies), King's knight upgrade, Pianist's row shuffle, Tombraiser's
  * graves.
  *
- * <p>Split out of {@link model.Board} purely to keep Board under the project's
+ * <p>Split out of {@link Board} purely to keep Board under the project's
  * class-length Checkstyle/PMD guideline (500 lines) - it only holds the one
  * bit of state that doesn't belong on Board itself (which wizard cast which
  * cat spell); everything else it does is through Board's own public API, so
@@ -30,7 +29,7 @@ class ZombieAbilitySupport {
     private final Map<Plant, Zombie> catSpellCasters = new HashMap<>();
 
     /** MagnetShroom: strips the first metal armor layer off the nearest zombie in range. */
-    boolean stealMetalArmorNear(model.Board board, int plantX, int lane, int range) {
+    boolean stealMetalArmorNear(Board board, int plantX, int lane, int range) {
         for (Zombie z : board.getZombies()) {
             boolean inRange = z.isAlive() && z.getLane() == lane && Math.abs(z.getX() - plantX) <= range;
             if (inRange && stripFirstMetalArmor(z)) {
@@ -50,7 +49,7 @@ class ZombieAbilitySupport {
         return false;
     }
 
-    boolean hasPlantWithinTiles(model.Board board, int lane, double x, int range) {
+    boolean hasPlantWithinTiles(Board board, int lane, double x, int range) {
         int from = Math.max(0, (int) x - range);
         int to = Math.min(board.getColumns() - 1, (int) x + range);
         for (int c = from; c <= to; c++) {
@@ -62,7 +61,7 @@ class ZombieAbilitySupport {
         return false;
     }
 
-    void laserDestroyPlantsAhead(model.Board board, Zombie source, int range) {
+    void laserDestroyPlantsAhead(Board board, Zombie source, int range) {
         int lane = source.getLane();
         int from = Math.max(0, (int) source.getX() - range);
         for (int c = from; c < (int) source.getX(); c++) {
@@ -73,21 +72,21 @@ class ZombieAbilitySupport {
         }
     }
 
-    void throwIceAtNearestPlant(model.Board board, Zombie hunter) {
+    void throwIceAtNearestPlant(Board board, Zombie hunter) {
         Plant target = nearestPlantInLane(board, hunter.getLane());
         if (target != null) {
             target.applyIceLayer();
         }
     }
 
-    void throwOctopusAtPlant(model.Board board, Zombie octopus) {
+    void throwOctopusAtPlant(Board board, Zombie octopus) {
         Plant target = nearestPlantInLane(board, octopus.getLane());
         if (target != null) {
             target.freezeCompletely();
         }
     }
 
-    private Plant nearestPlantInLane(model.Board board, int lane) {
+    private Plant nearestPlantInLane(Board board, int lane) {
         for (int c = board.getColumns() - 1; c >= 0; c--) {
             Tile tile = board.getTileAt(c, lane);
             if (tile != null && !tile.isEmpty()) {
@@ -97,7 +96,7 @@ class ZombieAbilitySupport {
         return null;
     }
 
-    void hookPlantTowards(model.Board board, Zombie fisherman) {
+    void hookPlantTowards(Board board, Zombie fisherman) {
         int lane = fisherman.getLane();
         for (int c = board.getColumns() - 1; c >= 1; c--) {
             Tile current = board.getTileAt(c, lane);
@@ -117,7 +116,7 @@ class ZombieAbilitySupport {
         return current != null && !current.isEmpty() && left != null && left.isEmpty();
     }
 
-    void turnRandomPlantIntoCat(model.Board board, int lane, Zombie wizard) {
+    void turnRandomPlantIntoCat(Board board, int lane, Zombie wizard) {
         List<Plant> candidates = new ArrayList<>();
         for (int c = 0; c < board.getColumns(); c++) {
             Tile tile = board.getTileAt(c, lane);
@@ -143,7 +142,7 @@ class ZombieAbilitySupport {
         });
     }
 
-    void upgradeNearbyZombieToKnight(model.Board board, Zombie king) {
+    void upgradeNearbyZombieToKnight(Board board, Zombie king) {
         for (Zombie z : board.getZombies()) {
             boolean eligible = z.isAlive() && z.getLane() == king.getLane()
                 && z.getDef().getType() == ZombieType.NORMAL && z.getArmors().isEmpty();
@@ -155,7 +154,7 @@ class ZombieAbilitySupport {
         }
     }
 
-    void shuffleRandomZombieRow(model.Board board) {
+    void shuffleRandomZombieRow(Board board) {
         List<Zombie> zombies = board.getZombies();
         if (zombies.isEmpty()) {
             return;
@@ -168,7 +167,7 @@ class ZombieAbilitySupport {
         }
     }
 
-    void spawnRandomGraves(model.Board board, int count) {
+    void spawnRandomGraves(Board board, int count) {
         for (int i = 0; i < count; i++) {
             int r = (int) (Math.random() * board.getRows());
             int c = (int) (Math.random() * board.getColumns());

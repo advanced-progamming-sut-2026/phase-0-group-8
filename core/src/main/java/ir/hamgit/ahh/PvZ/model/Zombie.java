@@ -1,9 +1,9 @@
 package ir.hamgit.ahh.PvZ.model;
 
-import ir.hamgit.ahh.PvZ.model.def.ZombieDef;
-import ir.hamgit.ahh.PvZ.model.entities.Plant;
-import ir.hamgit.ahh.PvZ.model.enums.*;
 
+
+import ir.hamgit.ahh.PvZ.model.def.ZombieDef;
+import ir.hamgit.ahh.PvZ.model.enums.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +14,7 @@ import java.util.Map;
  * A live zombie on the board. Generic movement/attack/armor handling lives
  * here for every zombie; each species' signature ability (per the "زامبی‌ها"
  * section of the spec) is a small private method dispatched from
- * {@link #runSpecialAbility(model.Board)}, using {@link #activeEffects} as a
+ * {@link #runSpecialAbility(Board)}, using {@link #activeEffects} as a
  * generic countdown-timer bag so we don't need one bespoke field per zombie.
  */
 public class Zombie {
@@ -68,7 +68,7 @@ public class Zombie {
         }
     }
 
-    public void tick(model.Board board) {
+    public void tick(Board board) {
         if (!alive) {
             return;
         }
@@ -86,7 +86,7 @@ public class Zombie {
         return def.getType() == ZombieType.FISHERMAN || def.getType() == ZombieType.KING;
     }
 
-    private void tryMove(model.Board board) {
+    private void tryMove(Board board) {
         if (hypnotized) {
             moveAsHypnotized(board);
             return;
@@ -106,7 +106,7 @@ public class Zombie {
         }
     }
 
-    private Plant plantBlockingMe(model.Board board) {
+    private Plant plantBlockingMe(Board board) {
         Plant p = board.getPlantInFrontOf(this);
         if (p != null && def.hasBehavior(BehaviorType.FLY_OVER_OBSTACLES) && canFlyOver(p)) {
             return null;
@@ -124,7 +124,7 @@ public class Zombie {
         return !bigObstacle && !hazard;
     }
 
-    private void attackPlant(model.Board board, Plant target) {
+    private void attackPlant(Board board, Plant target) {
         if (instantKillsPlants()) {
             board.destroyPlantInstantly(target);
             markAllStarSprintOver();
@@ -148,7 +148,7 @@ public class Zombie {
     }
 
     /** Garlic: eating it doesn't kill the zombie, it gets shoved into a neighboring lane instead. */
-    private void redirectToAdjacentLane(model.Board board) {
+    private void redirectToAdjacentLane(Board board) {
         int delta = Math.random() < 0.5 ? -1 : 1;
         int candidate = lane + delta;
         lane = (candidate < 0 || candidate >= board.getRows()) ? lane - delta : candidate;
@@ -171,7 +171,7 @@ public class Zombie {
             && armors.stream().allMatch(Armor::isDestroyed);
     }
 
-    private void moveAsHypnotized(model.Board board) {
+    private void moveAsHypnotized(Board board) {
         Zombie enemy = board.getNearestEnemyZombieInFront(this);
         if (enemy != null) {
             enemy.takeDamage(def.getDamage(), false, false);
@@ -187,7 +187,7 @@ public class Zombie {
         }
     }
 
-    private double effectiveSpeed(model.Board board) {
+    private double effectiveSpeed(Board board) {
         double base = 0.1 * def.getSpeed() * board.getDifficultySpeedMultiplier() * chillFactor;
         if (def.getType() == ZombieType.ALL_STAR && !sprintOver) {
             base *= ALL_STAR_SPRINT_MULTIPLIER;
@@ -202,7 +202,7 @@ public class Zombie {
         return activeEffects.getOrDefault("spinCooldown", 0) > 0;
     }
 
-    private void applyTileEffects(model.Board board) {
+    private void applyTileEffects(Board board) {
         if (def.hasBehavior(BehaviorType.FLY_OVER_OBSTACLES)) {
             return;
         }
@@ -218,7 +218,7 @@ public class Zombie {
         submerged = tile.getType() == TileType.WATER && def.getType() == ZombieType.SNORKEL;
     }
 
-    private void runSpecialAbility(model.Board board) {
+    private void runSpecialAbility(Board board) {
         specialBehaviors.run(this, board);
     }
 
@@ -248,7 +248,7 @@ public class Zombie {
         alive = false;
     }
 
-    void die(model.Board board) {
+    void die(Board board) {
         deathHandled = true;
         System.out.printf("Zombie of type %s is dead at (%.0f, %d)%n", def.getType(), x, lane);
         returnStolenSunOnDeath(board);
@@ -262,7 +262,7 @@ public class Zombie {
         board.onZombieKilled(this);
     }
 
-    private void returnStolenSunOnDeath(model.Board board) {
+    private void returnStolenSunOnDeath(Board board) {
         if (def.getType() == ZombieType.RA_ZOMBIE && stolenSun > 0) {
             board.addSun(stolenSun);
         } else if (def.getType() == ZombieType.TURQUOISE && stolenSun > 0) {

@@ -1,7 +1,7 @@
 package ir.hamgit.ahh.PvZ.model.special;
 
+import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.Zombie;
-import model.Board;
 
 /** "ددلاین" - a vertical line; any zombie crossing it ends the level immediately. */
 public class DeadLineLevel extends SpecialLevelHandler {

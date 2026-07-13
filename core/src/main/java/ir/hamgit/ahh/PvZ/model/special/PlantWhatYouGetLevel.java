@@ -1,6 +1,7 @@
 package ir.hamgit.ahh.PvZ.model.special;
 
 
+import ir.hamgit.ahh.PvZ.model.def.PlantDef;
 import ir.hamgit.ahh.PvZ.model.def.PlantRegistry;
 import ir.hamgit.ahh.PvZ.model.enums.BehaviorType;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
@@ -23,7 +24,7 @@ public class PlantWhatYouGetLevel extends SpecialLevelHandler {
 
     @Override
     public boolean isSelectablePlant(PlantType type) {
-        model.def.PlantDef def = PlantRegistry.get(type);
+        PlantDef def = PlantRegistry.get(type);
         return def == null || !def.hasBehavior(BehaviorType.PRODUCE_SUN);
     }
 

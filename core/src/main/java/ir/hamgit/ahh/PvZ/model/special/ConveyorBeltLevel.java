@@ -1,8 +1,8 @@
 package ir.hamgit.ahh.PvZ.model.special;
 
+import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.special.SpecialLevelHandler;
-import model.Board;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

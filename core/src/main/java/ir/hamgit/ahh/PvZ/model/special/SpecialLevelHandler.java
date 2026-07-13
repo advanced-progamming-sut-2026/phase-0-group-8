@@ -1,9 +1,10 @@
 package ir.hamgit.ahh.PvZ.model.special;
 
+import ir.hamgit.ahh.PvZ.model.Board;
+import ir.hamgit.ahh.PvZ.model.Plant;
 import ir.hamgit.ahh.PvZ.model.Zombie;
-import ir.hamgit.ahh.PvZ.model.entities.Plant;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
-import model.Board;
+
 
 
 import java.util.Collections;
