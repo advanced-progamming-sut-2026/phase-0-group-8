@@ -1,6 +1,7 @@
 package ir.hamgit.ahh.PvZ.model.def;
 
 import com.fasterxml.jackson.annotation.*;
+import ir.hamgit.ahh.PvZ.config.GameConfig;
 import ir.hamgit.ahh.PvZ.model.enums.*;
 import java.util.*;
 
@@ -12,11 +13,12 @@ public class PlantDef {
     private final int sunCost;
     private final double maxHp;
     private final int rechargeTicks;
+    private final int actionIntervalTicks;
     private final double damage;
+    private final double abilityValue;
     private final Set<Tag> tags;
     private final List<BehaviorType> behaviors;
     private final int range;
-
 
     @JsonCreator
     public PlantDef(
@@ -26,24 +28,33 @@ public class PlantDef {
         @JsonProperty("cost") int sunCost,
         @JsonProperty("baseHp") double maxHp,
         @JsonProperty("recharge") double rechargeSeconds,
+        @JsonProperty("actionInterval") Double actionIntervalSeconds,
         @JsonProperty("damage") double damage,
+        @JsonProperty("abilityValue") Double abilityValue,
         @JsonProperty("tags") Set<Tag> tags,
-        @JsonProperty("abilityType") BehaviorType behavior
+        @JsonProperty("abilityType") BehaviorType behavior,
+        @JsonProperty("range") Integer jsonRange
     ) {
         this.type = type;
         this.category = category;
         this.displayName = displayName != null ? displayName : (type != null ? type.name() : "Unknown");
         this.sunCost = sunCost;
         this.maxHp = maxHp;
-        this.rechargeTicks = (int) (rechargeSeconds * 20);
+
+        this.rechargeTicks = (int) (rechargeSeconds * GameConfig.TICKS_PER_SECOND);
+
+        double actualInterval = actionIntervalSeconds != null ? actionIntervalSeconds : 0.0;
+        this.actionIntervalTicks = (int) (actualInterval * GameConfig.TICKS_PER_SECOND);
+
         this.damage = damage;
+        this.abilityValue = abilityValue != null ? abilityValue : 0.0;
+        this.range = jsonRange != null ? jsonRange : 0;
         this.tags = tags != null ? tags : new HashSet<>();
 
         this.behaviors = new ArrayList<>();
         if (behavior != null) {
             this.behaviors.add(behavior);
         }
-        this.range = 0;
     }
 
     public PlantType getType() {
@@ -70,8 +81,16 @@ public class PlantDef {
         return rechargeTicks;
     }
 
+    public int getActionIntervalTicks() {
+        return actionIntervalTicks;
+    }
+
     public double getDamage() {
         return damage;
+    }
+
+    public double getAbilityValue() {
+        return abilityValue;
     }
 
     public int getRange() {
