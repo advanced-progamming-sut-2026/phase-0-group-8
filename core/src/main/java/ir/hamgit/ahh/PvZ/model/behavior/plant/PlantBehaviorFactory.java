@@ -22,7 +22,6 @@ public final class PlantBehaviorFactory {
                 case PASSIVE_SHIELD -> behaviors.add(new PassiveShieldBehavior());
                 case MODIFIER_UTILITY -> behaviors.add(new ModifierUtilityBehavior());
                 case MINT_FAMILY_BOOST -> behaviors.add(new MintFamilyBoostBehavior());
-                default -> behaviors.add(new PassiveShieldBehavior());
             }
         }
         return behaviors;

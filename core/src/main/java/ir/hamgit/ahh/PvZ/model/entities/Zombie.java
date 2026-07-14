@@ -1,5 +1,7 @@
 package ir.hamgit.ahh.PvZ.model.entities;
 
+import ir.hamgit.ahh.PvZ.model.behavior.BoardContext;
+import ir.hamgit.ahh.PvZ.model.behavior.zombie.*;
 import ir.hamgit.ahh.PvZ.model.def.ZombieDef;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
 
@@ -12,6 +14,7 @@ public class Zombie {
     private double currentHp;
     private int lastActionTick;
     private final List<String> loadedArmorRtids = new ArrayList<>();
+    private final List<ZombieBehavior> behaviors = new ArrayList<>();
 
     public Zombie(ZombieDef def, int row, double startingX) {
         this.def = def;
@@ -22,6 +25,15 @@ public class Zombie {
 
         if (def.getArmorProps() != null) {
             this.loadedArmorRtids.addAll(def.getArmorProps());
+        }
+
+        this.behaviors.add(new DefaultZombieBehavior());
+        this.behaviors.addAll(ZombieBehaviorFactory.createSpecialBehaviors(def.getObjClass()));
+    }
+
+    public void step(BoardContext ctx, int currentTick) {
+        for (ZombieBehavior behavior : behaviors) {
+            behavior.onTick(this, ctx, currentTick);
         }
     }
 
