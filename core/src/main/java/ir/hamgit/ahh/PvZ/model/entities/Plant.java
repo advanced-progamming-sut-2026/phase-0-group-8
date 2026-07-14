@@ -1,6 +1,6 @@
 package ir.hamgit.ahh.PvZ.model.entities;
 
-import ir.hamgit.ahh.PvZ.model.behavior.BehaviorFactory;
+import ir.hamgit.ahh.PvZ.model.behavior.plant.PlantBehaviorFactory;
 import ir.hamgit.ahh.PvZ.model.behavior.BoardContext;
 import ir.hamgit.ahh.PvZ.model.behavior.plant.PlantBehavior;
 import ir.hamgit.ahh.PvZ.model.def.PlantDef;
@@ -24,7 +24,7 @@ public class Plant {
         this.currentHp = def.getMaxHp();
         this.lastActionTick = 0;
 
-        this.behaviors = BehaviorFactory.createBehaviors(def.getBehaviors());
+        this.behaviors = PlantBehaviorFactory.createBehaviors(def.getBehaviors());
     }
 
     public void onPlaced(BoardContext ctx) {

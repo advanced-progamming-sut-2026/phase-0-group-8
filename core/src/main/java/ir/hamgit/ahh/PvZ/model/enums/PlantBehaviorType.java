@@ -1,6 +1,6 @@
 package ir.hamgit.ahh.PvZ.model.enums;
 
-public enum BehaviorType {
+public enum PlantBehaviorType {
     PRODUCE_SUN,
     INSTANT_SUN_BURST,
     SHOOT_PROJECTILE,

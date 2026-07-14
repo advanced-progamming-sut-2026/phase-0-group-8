@@ -17,7 +17,7 @@ public class PlantDef {
     private final double damage;
     private final double abilityValue;
     private final Set<Tag> tags;
-    private final List<BehaviorType> behaviors;
+    private final List<PlantBehaviorType> behaviors;
     private final int range;
 
     @JsonCreator
@@ -32,7 +32,7 @@ public class PlantDef {
         @JsonProperty("damage") double damage,
         @JsonProperty("abilityValue") Double abilityValue,
         @JsonProperty("tags") Set<Tag> tags,
-        @JsonProperty("abilityType") BehaviorType behavior,
+        @JsonProperty("abilityType") PlantBehaviorType behavior,
         @JsonProperty("range") Integer jsonRange
     ) {
         this.type = type;
@@ -101,7 +101,7 @@ public class PlantDef {
         return tags;
     }
 
-    public List<BehaviorType> getBehaviors() {
+    public List<PlantBehaviorType> getBehaviors() {
         return behaviors;
     }
 
