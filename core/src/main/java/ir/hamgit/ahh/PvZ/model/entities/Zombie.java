@@ -3,6 +3,9 @@ package ir.hamgit.ahh.PvZ.model.entities;
 import ir.hamgit.ahh.PvZ.model.behavior.BoardContext;
 import ir.hamgit.ahh.PvZ.model.behavior.zombie.*;
 import ir.hamgit.ahh.PvZ.model.def.ZombieDef;
+import ir.hamgit.ahh.PvZ.model.def.ArmorDef;
+import ir.hamgit.ahh.PvZ.model.def.ArmorRegistry;
+import ir.hamgit.ahh.PvZ.model.enums.ArmorType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
 
 import java.util.*;
@@ -13,8 +16,9 @@ public class Zombie {
     private double x;
     private double currentHp;
     private int lastActionTick;
-    private final List<String> loadedArmorRtids = new ArrayList<>();
+    private final List<Armor> loadedArmors = new ArrayList<>();
     private final List<ZombieBehavior> behaviors = new ArrayList<>();
+    private double speedModifier = 1.0;
 
     public Zombie(ZombieDef def, int row, double startingX) {
         this.def = def;
@@ -24,7 +28,17 @@ public class Zombie {
         this.lastActionTick = 0;
 
         if (def.getArmorProps() != null) {
-            this.loadedArmorRtids.addAll(def.getArmorProps());
+            for (String armorPropName : def.getArmorProps()) {
+                try {
+                    ArmorType type = ArmorType.valueOf(armorPropName.toUpperCase());
+                    ArmorDef armorDef = ArmorRegistry.getInstance().getDefinition(type);
+                    if (armorDef != null) {
+                        this.loadedArmors.add(new Armor(armorDef));
+                    }
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Could not map armor property: " + armorPropName + " to an ArmorType enum.");
+                }
+            }
         }
 
         this.behaviors.add(new DefaultZombieBehavior());
@@ -38,7 +52,30 @@ public class Zombie {
     }
 
     public void takeDamage(double damage) {
-        this.currentHp = Math.max(0.0, this.currentHp - damage);
+        double remainingDamage = damage;
+
+
+        Iterator<Armor> iterator = loadedArmors.iterator();
+        while (iterator.hasNext() && remainingDamage > 0) {
+            Armor armor = iterator.next();
+            remainingDamage = armor.takeDamage(remainingDamage);
+
+            if (armor.isBroken()) {
+                iterator.remove();
+                onArmorBroken(armor);
+            }
+        }
+
+        if (remainingDamage > 0) {
+            this.currentHp = Math.max(0.0, this.currentHp - remainingDamage);
+        }
+    }
+
+
+    private void onArmorBroken(Armor armor) {
+        if (armor.getType() == ArmorType.NEWSPAPER) {
+            this.speedModifier = 2.0;
+        }
     }
 
     public boolean isDead() {
@@ -65,8 +102,8 @@ public class Zombie {
         return lastActionTick;
     }
 
-    public List<String> getLoadedArmorRtids() {
-        return loadedArmorRtids;
+    public List<Armor> getLoadedArmors() {
+        return loadedArmors;
     }
 
     public void setX(double x) {
@@ -77,13 +114,13 @@ public class Zombie {
         this.lastActionTick = lastActionTick;
     }
 
-    // GETTERS FROM ZOMBIE DEF
+    // GETTERS DELEGATED TO ZOMBIE DEF
     public ZombieType getType() {
         return def.getType();
     }
 
     public double getSpeed() {
-        return def.getSpeed();
+        return def.getSpeed() * speedModifier;
     }
 
     public double getEatDps() {

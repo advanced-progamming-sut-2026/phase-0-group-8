@@ -131,6 +131,7 @@
     "recharge": 5.0,
     "abilityType": "SHOOT_PROJECTILE",
     "abilityValue": 2.0,
+    "fireMode": "SEQUENTIAL_SAME_LANE",
     "plantFoodType": "PROJECTILE_BURST",
     "plantFoodValue": 120.0,
     "upgrades": [
@@ -151,6 +152,7 @@
     "recharge": 5.0,
     "abilityType": "SHOOT_PROJECTILE",
     "abilityValue": 3.0,
+    "fireMode": "SIMULTANEOUS_MULTI_LANE",
     "plantFoodType": "PROJECTILE_BURST",
     "plantFoodValue": 180.0,
     "upgrades": [
@@ -191,6 +193,7 @@
     "recharge": 5.0,
     "abilityType": "SHOOT_PROJECTILE",
     "abilityValue": 4.0,
+    "fireMode": "SIMULTANEOUS_DIAGONAL",
     "plantFoodType": "PROJECTILE_BURST",
     "plantFoodValue": 40.0,
     "upgrades": [
@@ -231,6 +234,8 @@
     "recharge": 5.0,
     "abilityType": "SHOOT_PROJECTILE",
     "abilityValue": 3.0,
+    "fireMode": "SIMULTANEOUS_BIDIRECTIONAL",
+    "directionSplit": { "forward": 1, "backward": 2 },
     "plantFoodType": "PROJECTILE_BURST",
     "plantFoodValue": 90.0,
     "upgrades": [
@@ -371,6 +376,7 @@
     "recharge": 5.0,
     "abilityType": "SHOOT_PROJECTILE",
     "abilityValue": 5.0,
+    "fireMode": "SIMULTANEOUS_STAR",
     "plantFoodType": "PROJECTILE_BURST",
     "plantFoodValue": 100.0,
     "upgrades": [
@@ -411,6 +417,7 @@
     "recharge": 5.0,
     "abilityType": "SHOOT_PROJECTILE",
     "abilityValue": 4.0,
+    "fireMode": "SEQUENTIAL_SAME_LANE",
     "plantFoodType": "PROJECTILE_BURST",
     "plantFoodValue": 350.0,
     "upgrades": [

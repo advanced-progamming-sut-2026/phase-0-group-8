@@ -39,6 +39,30 @@ public class Plant {
         }
     }
 
+    public void triggerPlantFood(BoardContext ctx) {
+        String pfType = def.getPlantFoodType();
+        double pfValue = def.getPlantFoodValue();
+
+        if (pfType == null || pfType.equals("NONE") || pfType.isEmpty()) {
+            return;
+        }
+
+        switch (pfType) {
+            case "SPAWN_SUN_ITEMS" -> {
+                ctx.spawnSun(this.row, this.col, pfValue, "PLANT_FOOD");
+            }
+            case "PROJECTILE_BURST" -> {
+                double bulletDamage = def.getDamage() > 0 ? def.getDamage() : 20.0;
+                double originX = (this.col * 100.0) + 50.0;
+                int burstCount = (int) pfValue;
+
+                for (int i = 0; i < burstCount; i++) {
+                    ctx.spawnProjectile(this.row, originX + (i * 8.0), bulletDamage, "NORMAL");
+                }
+            }
+        }
+    }
+
     public void takeDamage(double damage) {
         this.currentHp = Math.max(0.0, currentHp - damage);
     }

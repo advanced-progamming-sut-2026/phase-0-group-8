@@ -9,5 +9,6 @@ public enum PlantBehaviorType {
     MELEE_ATTACK,
     PASSIVE_SHIELD,
     MODIFIER_UTILITY,
-    MINT_FAMILY_BOOST
+    MINT_FAMILY_BOOST,
+    PLANT_FOOD_ACTIVATE
 }

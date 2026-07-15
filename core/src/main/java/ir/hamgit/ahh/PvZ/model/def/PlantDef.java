@@ -19,6 +19,10 @@ public class PlantDef {
     private final Set<Tag> tags;
     private final List<PlantBehaviorType> behaviors;
     private final int range;
+    private final String plantFoodType;
+    private final double plantFoodValue;
+    private final String fireMode;
+    private final Map<String, Integer> directionSplit;
 
     @JsonCreator
     public PlantDef(
@@ -33,7 +37,11 @@ public class PlantDef {
         @JsonProperty("abilityValue") Double abilityValue,
         @JsonProperty("tags") Set<Tag> tags,
         @JsonProperty("abilityType") PlantBehaviorType behavior,
-        @JsonProperty("range") Integer jsonRange
+        @JsonProperty("range") Integer jsonRange,
+        @JsonProperty("plantFoodType") String plantFoodType,
+        @JsonProperty("plantFoodValue") Double plantFoodValue,
+        @JsonProperty("fireMode") String fireMode,
+        @JsonProperty("directionSplit") Map<String, Integer> directionSplit
     ) {
         this.type = type;
         this.category = category;
@@ -55,6 +63,11 @@ public class PlantDef {
         if (behavior != null) {
             this.behaviors.add(behavior);
         }
+
+        this.plantFoodType = plantFoodType != null ? plantFoodType : "NONE";
+        this.plantFoodValue = plantFoodValue != null ? plantFoodValue : 0.0;
+        this.fireMode = fireMode != null ? fireMode : "SINGLE";
+        this.directionSplit = directionSplit != null ? directionSplit : Collections.emptyMap();
     }
 
     public PlantType getType() {
@@ -103,6 +116,22 @@ public class PlantDef {
 
     public List<PlantBehaviorType> getBehaviors() {
         return behaviors;
+    }
+
+    public String getPlantFoodType() {
+        return plantFoodType;
+    }
+
+    public double getPlantFoodValue() {
+        return plantFoodValue;
+    }
+
+    public String getFireMode() {
+        return fireMode;
+    }
+
+    public Map<String, Integer> getDirectionSplit() {
+        return directionSplit;
     }
 
     public boolean canPlantOnWater() {
