@@ -1,84 +1,75 @@
 package ir.hamgit.ahh.PvZ.model.def;
 
-import com.fasterxml.jackson.annotation.*;
+import ir.hamgit.ahh.PvZ.model.enums.ArmorType;
+import ir.hamgit.ahh.PvZ.model.enums.BehaviorType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
-import java.util.*;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class ZombieDef {
+import java.util.Collections;
+import java.util.List;
+
+/** Immutable "recipe card" describing one kind of zombie. Populated by {@link ZombieRegistry}. */
+public final class ZombieDef {
+
     private final ZombieType type;
-    private final String objClass;
-    private final double hitpoints;
-    private final double eatDps;
+    private final String displayName;
+    private final int maxHp;
     private final double speed;
-    private final int wavePointCost;
-    private final int weight;
-    private final List<String> armorProps;
-    private final Map<String, Object> extraProps;
+    private final int damage;
+    private final int waveCost;
+    private final List<ArmorType> armorLayers;
+    private final List<BehaviorType> behaviors;
+    private final String chapter;
 
-    @JsonCreator
-    public ZombieDef(
-        @JsonProperty("aliases") List<ZombieType> aliases,
-        @JsonProperty("objdata") Map<String, Object> objData
-    ) {
-        this.type = aliases.get(0);
-
-        this.extraProps = objData != null ? objData : new HashMap<>();
-        this.objClass = (String) this.extraProps.getOrDefault("objclass", "ZombiePropertySheet");
-
-        this.hitpoints = ((Number) objData.getOrDefault("Hitpoints", 0.0)).doubleValue();
-        this.eatDps = ((Number) objData.getOrDefault("EatDPS", 0.0)).doubleValue();
-        this.speed = ((Number) objData.getOrDefault("Speed", 0.0)).doubleValue();
-        this.wavePointCost = ((Number) objData.getOrDefault("WavePointCost", 0)).intValue();
-        this.weight = ((Number) objData.getOrDefault("Weight", 0)).intValue();
-        this.armorProps = (List<String>) objData.get("ZombieArmorProps");
-    }
-
-    public double getPropAsDouble(String key, double defaultValue) {
-        Object val = extraProps.get(key);
-        if (val instanceof Number) {
-            return ((Number) val).doubleValue();
-        }
-        return defaultValue;
-    }
-
-    public int getPropAsInt(String key, int defaultValue) {
-        Object val = extraProps.get(key);
-        if (val instanceof Number) {
-            return ((Number) val).intValue();
-        }
-        return defaultValue;
+    public ZombieDef(ZombieType type, String displayName, int maxHp, double speed, int damage, int waveCost,
+                     List<ArmorType> armorLayers, List<BehaviorType> behaviors, String chapter) {
+        this.type = type;
+        this.displayName = displayName;
+        this.maxHp = maxHp;
+        this.speed = speed;
+        this.damage = damage;
+        this.waveCost = waveCost;
+        this.armorLayers = Collections.unmodifiableList(armorLayers);
+        this.behaviors = Collections.unmodifiableList(behaviors);
+        this.chapter = chapter;
     }
 
     public ZombieType getType() {
         return type;
     }
 
-    public String getObjClass() {
-        return objClass;
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public double getHitpoints() {
-        return hitpoints;
-    }
-
-    public double getEatDps() {
-        return eatDps;
+    public int getMaxHp() {
+        return maxHp;
     }
 
     public double getSpeed() {
         return speed;
     }
 
-    public int getWavePointCost() {
-        return wavePointCost;
+    public int getDamage() {
+        return damage;
     }
 
-    public int getWeight() {
-        return weight;
+    public int getWaveCost() {
+        return waveCost;
     }
 
-    public List<String> getArmorProps() {
-        return armorProps;
+    public boolean hasBehavior(BehaviorType behavior) {
+        return behaviors.contains(behavior);
+    }
+
+    public List<ArmorType> getArmorLayers() {
+        return armorLayers;
+    }
+
+    public List<BehaviorType> getBehaviors() {
+        return behaviors;
+    }
+
+    public String getChapter() {
+        return chapter;
     }
 }

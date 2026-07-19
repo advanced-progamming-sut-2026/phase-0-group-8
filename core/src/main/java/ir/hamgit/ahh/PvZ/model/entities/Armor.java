@@ -1,6 +1,5 @@
 package ir.hamgit.ahh.PvZ.model.entities;
 
-import ir.hamgit.ahh.PvZ.model.def.ArmorDef;
 import ir.hamgit.ahh.PvZ.model.enums.ArmorType;
 
 public class Armor {

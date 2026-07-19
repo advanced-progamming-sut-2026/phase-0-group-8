@@ -1,25 +1,9 @@
 package ir.hamgit.ahh.PvZ.model.enums;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
+/** Armor layers a zombie can wear. HP caps live in {@code model.Armor}.
+ *  ARCADE_MACHINE was added beyond the original reference table so the
+ *  Arcade Zombie's pushed machine (same HP as a bucket, per spec) can be
+ *  modeled the same way as the other "destroy the object first" zombies. */
 public enum ArmorType {
-    @JsonProperty("Cone")
-    CONE,
-
-    @JsonProperty("Bucket")
-    BUCKET,
-
-    @JsonProperty("Brick")
-    BRICK,
-
-    @JsonProperty("ShoulderArmor")
-    SHOULDER_ARMOR,
-
-    @JsonProperty("Crown")
-    CROWN,
-
-    @JsonProperty("Newspaper")
-    NEWSPAPER,
-
-    NONE
+    NONE, CONE, BUCKET, HELMET, SHOULDER, BLOCK, NEWSPAPER, BARREL, PIANO, ARCADE_MACHINE
 }

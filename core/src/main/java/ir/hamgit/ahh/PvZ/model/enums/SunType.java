@@ -1,15 +1,6 @@
 package ir.hamgit.ahh.PvZ.model.enums;
 
+/** Falling-sun variants: 80% NORMAL, 15% SPECIAL, 5% RADIOACTIVE. */
 public enum SunType {
-    NORMAL(0.8),
-    SPECIAL(0.15),
-    RADIOACTIVE(0.05);
-
-    private final double dropChance;
-
-    SunType(double dropChance) {
-        this.dropChance = dropChance;
-    }
-
-
+    NORMAL, SPECIAL, RADIOACTIVE
 }

@@ -3,8 +3,6 @@ package ir.hamgit.ahh.PvZ.model.entities;
 import ir.hamgit.ahh.PvZ.model.behavior.BoardContext;
 import ir.hamgit.ahh.PvZ.model.behavior.zombie.*;
 import ir.hamgit.ahh.PvZ.model.def.ZombieDef;
-import ir.hamgit.ahh.PvZ.model.def.ArmorDef;
-import ir.hamgit.ahh.PvZ.model.def.ArmorRegistry;
 import ir.hamgit.ahh.PvZ.model.enums.ArmorType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
 
