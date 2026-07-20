@@ -1,4 +1,4 @@
-package ir.hamgit.ahh.PvZ.minigame;
+package ir.hamgit.ahh.PvZ.model.minigame;
 
 
 import ir.hamgit.ahh.PvZ.model.Board;

@@ -1,7 +1,6 @@
-package ir.hamgit.ahh.PvZ.minigame;
+package ir.hamgit.ahh.PvZ.model.minigame;
 
 
-import ir.hamgit.ahh.PvZ.controller.CommandParser;
 import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.enums.ChapterType;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
@@ -12,16 +11,13 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
-public class BeghouledGame {
+public class BeghouledGame implements MinigameSession {
 
-    private static final Pattern COORD_PAIR_PATTERN = Pattern.compile("(-?\\d+)\\D+(-?\\d+)");
     private static final List<PlantType> PALETTE = List.of(
-            PlantType.PEASHOOTER, PlantType.WALLNUT, PlantType.PUFF_SHROOM,
-            PlantType.CABBAGE_PULT, PlantType.SUNFLOWER);
+        PlantType.PEASHOOTER, PlantType.WALL_NUT, PlantType.PUFF_SHROOM,
+        PlantType.CABBAGE_PULT, PlantType.SUNFLOWER);
     private static final int BASE_MATCH_REWARD = 50;
     private static final int CASCADE_BONUS = 50;
     private static final int TOTAL_WAVES = 9999;
@@ -50,8 +46,8 @@ public class BeghouledGame {
     private static Map<PlantType, PlantType> buildUpgradeTable() {
         Map<PlantType, PlantType> map = new EnumMap<>(PlantType.class);
         map.put(PlantType.PEASHOOTER, PlantType.REPEATER);
-        map.put(PlantType.REPEATER, PlantType.GATLING_PEA);
-        map.put(PlantType.WALLNUT, PlantType.TALL_NUT);
+        map.put(PlantType.REPEATER, PlantType.MEGA_GATLING_PEA);
+        map.put(PlantType.WALL_NUT, PlantType.TALL_NUT);
         map.put(PlantType.PUFF_SHROOM, PlantType.FUME_SHROOM);
         map.put(PlantType.CABBAGE_PULT, PlantType.MELON_PULT);
         map.put(PlantType.MELON_PULT, PlantType.WINTER_MELON);
@@ -62,7 +58,7 @@ public class BeghouledGame {
         Map<PlantType, Integer> map = new EnumMap<>(PlantType.class);
         map.put(PlantType.PEASHOOTER, 500);
         map.put(PlantType.REPEATER, 1500);
-        map.put(PlantType.WALLNUT, 500);
+        map.put(PlantType.WALL_NUT, 500);
         map.put(PlantType.PUFF_SHROOM, 250);
         map.put(PlantType.CABBAGE_PULT, 1000);
         map.put(PlantType.MELON_PULT, 750);
@@ -316,55 +312,6 @@ public class BeghouledGame {
 
     public boolean isWon() {
         return won;
-    }
-
-    public void handle(String raw) {
-        String trimmed = raw.trim();
-        if (trimmed.startsWith("swap")) {
-            handleSwap(trimmed);
-        } else if (trimmed.startsWith("upgrade")) {
-            handleUpgrade(trimmed);
-        } else if (trimmed.startsWith("advance time")) {
-            Map<String, String> flags = CommandParser.parse(trimmed);
-            tick(CommandParser.getIntFlag(flags, "-t", 1));
-        } else if (trimmed.startsWith("show map")) {
-            board.showMap();
-        } else {
-            System.out.println("Unknown Beghouled command: " + raw);
-        }
-    }
-
-    private void handleSwap(String raw) {
-        List<Integer> nums = new ArrayList<>();
-        Matcher m = COORD_PAIR_PATTERN.matcher(raw);
-        while (m.find() && nums.size() < 4) {
-            nums.add(Integer.parseInt(m.group(1)));
-            nums.add(Integer.parseInt(m.group(2)));
-        }
-        if (nums.size() == 4) {
-            swapPlants(nums.get(0), nums.get(1), nums.get(2), nums.get(3));
-        }
-    }
-
-    private void handleUpgrade(String raw) {
-        Map<String, String> flags = CommandParser.parse(raw);
-        PlantType from = parsePlantType(flags.get("-f"));
-        PlantType to = parsePlantType(flags.get("-t"));
-        if (from != null && to != null) {
-            upgrade(from, to);
-        }
-    }
-
-    private PlantType parsePlantType(String raw) {
-        if (raw == null) {
-            return null;
-        }
-        try {
-            return PlantType.valueOf(raw.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            System.out.println("Unknown plant type: " + raw);
-            return null;
-        }
     }
 
     public Board getBoard() {

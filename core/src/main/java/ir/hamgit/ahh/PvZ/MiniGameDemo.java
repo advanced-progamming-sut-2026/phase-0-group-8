@@ -1,10 +1,10 @@
 package ir.hamgit.ahh.PvZ;
 
 
-import ir.hamgit.ahh.PvZ.minigame.BeghouledGame;
-import ir.hamgit.ahh.PvZ.minigame.IZombieGame;
-import ir.hamgit.ahh.PvZ.minigame.VasebreakerGame;
-import ir.hamgit.ahh.PvZ.minigame.WallnutBowlingGame;
+import ir.hamgit.ahh.PvZ.model.minigame.BeghouledGame;
+import ir.hamgit.ahh.PvZ.model.minigame.IZombieGame;
+import ir.hamgit.ahh.PvZ.model.minigame.VasebreakerGame;
+import ir.hamgit.ahh.PvZ.model.minigame.WallnutBowlingGame;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
 
 

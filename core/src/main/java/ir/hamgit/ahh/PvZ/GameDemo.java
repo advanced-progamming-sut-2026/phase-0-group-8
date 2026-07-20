@@ -31,7 +31,7 @@ public final class GameDemo {
 
         GameController game = new GameController(user);
         runNormalLevelDemo(game, user);
-        runSpecialLevelDemo(game);
+//        runSpecialLevelDemo(game);
     }
 
     private static void runNormalLevelDemo(GameController game, User user) {
@@ -44,15 +44,36 @@ public final class GameDemo {
         game.startActualGame(3);
 
         game.handleCommand("plant plant -t SUNFLOWER -l (0, 2)");
+        game.handleCommand("cheat add -n 400 suns");
         game.handleCommand("plant plant -t PEASHOOTER -l (2, 2)");
         game.handleCommand("plant plant -t WALLNUT -l (5, 2)");
         game.handleCommand("cheat spawn-zombie -t NORMAL -l 8, 2");
         game.handleCommand("cheat spawn-zombie -t CONEHEAD -l 8, 1");
 
-        System.out.println("\n--- advancing 30 ticks (3 seconds) ---");
-        game.handleCommand("advance time -t 30 ticks");
+        System.out.println("\n--- advancing 10 ticks (1 seconds) ---");
+        game.handleCommand("advance time -t 10 ticks");
         game.handleCommand("show map");
-        game.handleCommand("show sun amount");
+
+        System.out.println("\n--- advancing 10 ticks (1 seconds) ---");
+        game.handleCommand("advance time -t 10 ticks");
+        game.handleCommand("show map");
+
+        System.out.println("\n--- advancing 10 ticks (1 seconds) ---");
+        game.handleCommand("advance time -t 10 ticks");
+        game.handleCommand("show map");
+
+        System.out.println("\n--- advancing 10 ticks (1 seconds) ---");
+        game.handleCommand("advance time -t 10 ticks");
+        game.handleCommand("show map");
+
+        System.out.println("\n--- advancing 10 ticks (1 seconds) ---");
+        game.handleCommand("advance time -t 10 ticks");
+        game.handleCommand("show map");
+
+        System.out.println("\n--- advancing 10 ticks (1 seconds) ---");
+        game.handleCommand("advance time -t 10 ticks");
+        game.handleCommand("show map");
+
 
         System.out.println("\n--- advancing another 200 ticks (20 seconds) ---");
         game.handleCommand("advance time -t 200 ticks");

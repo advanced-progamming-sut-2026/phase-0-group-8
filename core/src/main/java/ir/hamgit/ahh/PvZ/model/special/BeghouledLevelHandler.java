@@ -1,6 +1,6 @@
 package ir.hamgit.ahh.PvZ.model.special;
 
-import ir.hamgit.ahh.PvZ.minigame.BeghouledGame;
+import ir.hamgit.ahh.PvZ.model.minigame.BeghouledGame;
 import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.Plant;
 
