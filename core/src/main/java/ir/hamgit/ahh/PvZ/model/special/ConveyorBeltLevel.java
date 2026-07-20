@@ -8,13 +8,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
-/**
- * "نوار کناری" - no plant selection; a conveyor belt delivers a random plant
- * (from the plants the player has already unlocked) every 12 seconds, the
- * first one immediately on level start. Deliveries queue up (FIFO) if the
- * player doesn't plant them right away, rather than being discarded, so
- * nothing the belt brings up is ever silently lost.
- */
 public class ConveyorBeltLevel extends SpecialLevelHandler {
 
     private static final int DELIVERY_INTERVAL_TICKS = 120;

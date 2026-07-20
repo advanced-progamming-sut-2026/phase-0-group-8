@@ -7,7 +7,6 @@ import ir.hamgit.ahh.PvZ.model.enums.TileType;
 import ir.hamgit.ahh.PvZ.model.enums.Tag;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
 
-/** Dynamic per-chapter rules that run on ticks and wave boundaries. */
 final class ChapterMechanics {
 
     private static final int FIRE_MELT_DAMAGE_PER_TICK = 6;

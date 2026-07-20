@@ -1,10 +1,5 @@
 package ir.hamgit.ahh.PvZ.model;
 
-/**
- * Tracks coins/diamonds earned during a level session (10% zombie-death drop
- * chance) until {@code GameController} drains them into the persistent
- * {@code User} wallet.
- */
 class CurrencyLedger {
 
     private static final double DROP_CHANCE = 0.10;
@@ -14,6 +9,7 @@ class CurrencyLedger {
 
     private int coinsEarned;
     private int diamondsEarned;
+    private int potsEarned;
 
     void maybeDropCurrency() {
         if (Math.random() >= DROP_CHANCE) {
@@ -27,7 +23,8 @@ class CurrencyLedger {
             coinsEarned += COIN_DROP_AMOUNT;
             System.out.println("A zombie dropeed a coin; you have " + coinsEarned + " coins now.");
         } else {
-            System.out.println("A zombie dropeed a pot; you have a new greenhouse pot now.");
+            potsEarned++;
+            System.out.println("A zombie dropped a greenhouse pot.");
         }
     }
 
@@ -41,5 +38,11 @@ class CurrencyLedger {
         int d = diamondsEarned;
         diamondsEarned = 0;
         return d;
+    }
+
+    int drainPotsEarned() {
+        int result = potsEarned;
+        potsEarned = 0;
+        return result;
     }
 }

@@ -6,11 +6,6 @@ import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
 import ir.hamgit.ahh.PvZ.model.enums.BehaviorType;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 
-/**
- * "هر چه رسد بکار" - fixed starting sun, no natural sun fall, no sun
- * producers selectable, unlimited free planting until the player issues
- * "start zombie waves".
- */
 public class PlantWhatYouGetLevel extends SpecialLevelHandler {
 
     private static final int DEFAULT_INITIAL_SUN = 500;

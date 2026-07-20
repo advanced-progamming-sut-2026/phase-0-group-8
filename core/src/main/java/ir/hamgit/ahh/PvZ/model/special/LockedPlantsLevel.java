@@ -5,6 +5,7 @@ import ir.hamgit.ahh.PvZ.model.def.PlantDef;
 import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.enums.Tag;
+import ir.hamgit.ahh.PvZ.model.special.SpecialLevelHandler;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,18 +13,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * <ol>
- *   <li><b>Family lockout</b>: one plant is taken from a family (plants sharing a
- *   {@link Tag}, e.g. all PEA shooters) and the rest of that family is locked for
- *   the level.</li>
- *   <li><b>Forced starter kit</b>: a handful of specific plants are the only ones
- *   available - the player has no choice but to start with exactly them.</li>
- * </ol>
- * Use {@link #familyLockout(Tag, PlantType)} or {@link #forcedStarterKit(Set)} to
- * build the right variant; {@code GameController} picks one when it builds this
- * handler for a given chapter/level slot.
- */
 public class LockedPlantsLevel extends SpecialLevelHandler {
 
     private final Set<PlantType> lockedTypes;

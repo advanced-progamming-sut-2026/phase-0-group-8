@@ -1,10 +1,6 @@
 package ir.hamgit.ahh.PvZ.model.enums;
 
-/**
- * Every plant in the real 69-plant table (plants.csv). This replaces the
- * previous 49-value placeholder enum that existed before the real data was
- * available - see {@code PlantRegistry} for the loading side.
- */
+
 public enum PlantType {
     SUNFLOWER, TWIN_SUNFLOWER, SUN_SHROOM, PRIMAL_SUNFLOWER, GOLD_BLOOM,
     PEASHOOTER, REPEATER, THREEPEATER, SNOW_PEA, ROTOBAGA, PEA_POD, SPLIT_PEA,

@@ -6,23 +6,18 @@ import ir.hamgit.ahh.PvZ.model.def.PlantDef;
 import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
 
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
+import ir.hamgit.ahh.PvZ.model.enums.BehaviorType;
+import ir.hamgit.ahh.PvZ.model.enums.Tag;
 
 
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * "محافظ دانه‌ها" - a handful of plants are pre-placed on the board at level
- * start; losing any one of them immediately ends the level. Real level
- * content (exact positions/species) would come from level-design data the
- * team defines later; here we place {@code protectedCount} random plants at
- * random empty tiles so the mechanic is fully functional and testable.
- */
 public class SaveOurSeedsLevel extends SpecialLevelHandler {
 
     private final int protectedCount;
-    private final List<int[]> protectedPositions = new ArrayList<>();
+    private final List<Plant> protectedPlants = new ArrayList<>();
     private boolean failed;
 
     public SaveOurSeedsLevel(int protectedCount) {
@@ -34,7 +29,7 @@ public class SaveOurSeedsLevel extends SpecialLevelHandler {
     @Override
     public void onLevelStart(Board board) {
         List<PlantType> pool = new ArrayList<>(PlantRegistry.getAll().stream()
-                .map(PlantDef::getType).toList());
+            .filter(this::isSuitableProtectedPlant).map(PlantDef::getType).toList());
         for (int i = 0; i < protectedCount && !pool.isEmpty(); i++) {
             placeOneProtectedPlant(board, pool);
         }
@@ -43,10 +38,11 @@ public class SaveOurSeedsLevel extends SpecialLevelHandler {
     private void placeOneProtectedPlant(Board board, List<PlantType> pool) {
         for (int attempt = 0; attempt < MAX_ATTEMPTS_PER_PLANT; attempt++) {
             PlantType type = pool.get((int) (Math.random() * pool.size()));
-            int x = (int) (Math.random() * board.getColumns());
+            int safeColumns = Math.max(1, board.getColumns() / 2);
+            int x = (int) (Math.random() * safeColumns);
             int lane = (int) (Math.random() * board.getRows());
             if (board.plantForFree(type, x, lane)) {
-                protectedPositions.add(new int[] {x, lane});
+                protectedPlants.add(board.getTileAt(x, lane).getPlant());
                 System.out.printf("A seed to protect: %s at (%d, %d)%n", type, x, lane);
                 return;
             }
@@ -55,11 +51,27 @@ public class SaveOurSeedsLevel extends SpecialLevelHandler {
 
     @Override
     public void onPlantLost(Board board, Plant plant) {
-        for (int[] pos : protectedPositions) {
-            if (pos[0] == plant.getX() && pos[1] == plant.getLane()) {
-                failed = true;
-            }
+        if (protectedPlants.contains(plant)) {
+            failed = true;
         }
+    }
+
+    @Override
+    public boolean canPluckPlant(Plant plant) {
+        return !protectedPlants.contains(plant);
+    }
+
+    private boolean isSuitableProtectedPlant(PlantDef def) {
+        return !def.hasBehavior(BehaviorType.DISAPPEAR_AFTER_ACTION)
+            && !def.hasBehavior(BehaviorType.REMOVE_GRAVE)
+            && !def.hasBehavior(BehaviorType.MELT_ICE)
+            && !def.hasBehavior(BehaviorType.CONTACT_EXPLOSION)
+            && !def.hasBehavior(BehaviorType.ADJACENT_SMASH)
+            && !def.hasBehavior(BehaviorType.CONTACT_FREEZE)
+            && !def.hasBehavior(BehaviorType.AQUATIC_INSTANT_KILL)
+            && !def.hasBehavior(BehaviorType.LIMITED_LIFESPAN)
+            && !def.hasTag(Tag.TRAP)
+            && !def.isCanPlantOnWater();
     }
 
     @Override

@@ -4,11 +4,6 @@ import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.entities.Zombie;
 
 
-
-/**
- * kill N zombies (or produce N sun, in the sun variant)
- * before the timer runs out.
- */
 public class TimedWarLevel extends SpecialLevelHandler {
 
     private final boolean sunVariant;

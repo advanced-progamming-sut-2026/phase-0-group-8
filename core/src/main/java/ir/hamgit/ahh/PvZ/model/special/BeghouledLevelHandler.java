@@ -4,13 +4,6 @@ import ir.hamgit.ahh.PvZ.model.minigame.BeghouledGame;
 import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.entities.Plant;
 
-/**
- * Handler for the Beghouled minigame: unlike every other minigame, waves
- * spawn and never stop (per spec), so {@link #blocksWaveSpawning()} stays
- * false. Sun only comes from matches here, so sky suns are still switched
- * off. Forwards plant-loss events to the game so it can mark that tile a
- * permanent crater.
- */
 public class BeghouledLevelHandler extends SpecialLevelHandler {
 
     private BeghouledGame game;

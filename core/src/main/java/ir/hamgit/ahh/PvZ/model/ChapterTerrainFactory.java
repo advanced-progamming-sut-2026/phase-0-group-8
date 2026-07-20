@@ -3,16 +3,13 @@ package ir.hamgit.ahh.PvZ.model;
 import ir.hamgit.ahh.PvZ.model.enums.ChapterType;
 import ir.hamgit.ahh.PvZ.model.enums.TileType;
 
-/**
- * Builds the initial {@link Tile}[][] grid for a chapter, per the "زمین
- * بازی" section of the spec: Egypt graves, Frostbite slippery ice, Beach
- * water columns, Dark Ages graves + necromancy.
- */
 public final class ChapterTerrainFactory {
 
     private static final double GRAVE_CHANCE_EGYPT = 0.10;
     private static final double SLIPPERY_CHANCE_FROSTBITE = 0.08;
+    private static final double FROZEN_GROUND_CHANCE = 0.12;
     private static final double NECROMANCY_CHANCE_DARK_AGES = 0.12;
+    static final int NECROMANCY_MIN_COLUMN = 3;
 
     private ChapterTerrainFactory() {
     }
@@ -31,7 +28,7 @@ public final class ChapterTerrainFactory {
     private static void applyChapterFeatures(Tile[][] tiles, ChapterType chapter, int rows, int columns) {
         switch (chapter) {
             case ANCIENT_EGYPT:
-                scatterGraves(tiles, rows, columns);
+                scatterGraves(tiles, rows, columns, false);
                 break;
             case FROSTBITE_CAVES:
                 scatterSlipperyTiles(tiles, rows, columns);
@@ -41,7 +38,7 @@ public final class ChapterTerrainFactory {
                 floodRightColumns(tiles, rows, columns);
                 break;
             case DARK_AGES:
-                scatterGraves(tiles, rows, columns);
+                scatterGraves(tiles, rows, columns, true);
                 markNecromancyTiles(tiles, rows, columns);
                 break;
             default:
@@ -49,11 +46,14 @@ public final class ChapterTerrainFactory {
         }
     }
 
-    private static void scatterGraves(Tile[][] tiles, int rows, int columns) {
+    private static void scatterGraves(Tile[][] tiles, int rows, int columns, boolean darkAges) {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < columns; c++) {
                 if (Math.random() < GRAVE_CHANCE_EGYPT) {
                     tiles[r][c] = new Tile(TileType.GRAVE);
+                    if (darkAges) {
+                        tiles[r][c].rollDarkAgesReward();
+                    }
                 }
             }
         }
@@ -73,7 +73,7 @@ public final class ChapterTerrainFactory {
     private static void markIcyGround(Tile[][] tiles, int rows, int columns) {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < columns; c++) {
-                if (tiles[r][c].getType() == TileType.NORMAL) {
+                if (tiles[r][c].getType() == TileType.NORMAL && Math.random() < FROZEN_GROUND_CHANCE) {
                     tiles[r][c].setType(TileType.ICY_GROUND);
                 }
             }
@@ -92,7 +92,7 @@ public final class ChapterTerrainFactory {
 
     private static void markNecromancyTiles(Tile[][] tiles, int rows, int columns) {
         for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < columns; c++) {
+            for (int c = NECROMANCY_MIN_COLUMN; c < columns; c++) {
                 if (Math.random() < NECROMANCY_CHANCE_DARK_AGES) {
                     tiles[r][c].setHasNecromancy(true);
                 }
