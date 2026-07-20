@@ -10,14 +10,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Immutable "recipe card" describing one kind of plant. Populated by
- * {@link PlantRegistry}.
- *
- * <p>Ability timing and range details are supplied by
- * {@link PlantAbilityProfiles}; the entity and behavior services therefore
- * dispatch on data rather than display names.</p>
- */
 public final class PlantDef {
 
     private final PlantType type;
@@ -134,7 +126,6 @@ public final class PlantDef {
         return behaviors.contains(behavior);
     }
 
-    /** Returns {@code [seedPackets, coins]} required to upgrade from {@code level} to {@code level + 1}. */
     public int[] getUpgradeCost(int level) {
         int step = level + 1;
         return new int[] {seedPacketsToUpgrade * step, coinsToUpgrade * step};

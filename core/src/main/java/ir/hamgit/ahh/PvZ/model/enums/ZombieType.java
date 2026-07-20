@@ -1,6 +1,5 @@
 package ir.hamgit.ahh.PvZ.model.enums;
 
-/** Every zombie species defined by the project spec. */
 public enum ZombieType {
     NORMAL, CONEHEAD, BUCKETHEAD, KNIGHT, BLOCKHEAD, GARGANTUAR, IMP, ALL_STAR, ARCADE,
     PARASOL, TURQUOISE, PROSPECTOR, PIANIST, NEWSPAPER, BARREL_ROLLER, RA_ZOMBIE, EXPLORER,

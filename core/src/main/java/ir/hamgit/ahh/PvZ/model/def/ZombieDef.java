@@ -7,7 +7,6 @@ import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
 import java.util.Collections;
 import java.util.List;
 
-/** Immutable "recipe card" describing one kind of zombie. Populated by {@link ZombieRegistry}. */
 public final class ZombieDef {
 
     private final ZombieType type;

@@ -4,8 +4,6 @@ import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 
 import java.util.EnumMap;
 import java.util.Map;
-
-/** Exact level-two through level-four effects transcribed from plants.csv. */
 public final class PlantLevelEffects {
 
     private static final Map<PlantType, String[]> EFFECTS = new EnumMap<>(PlantType.class);

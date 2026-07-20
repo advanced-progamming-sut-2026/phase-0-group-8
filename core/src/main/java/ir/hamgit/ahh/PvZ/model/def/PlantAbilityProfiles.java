@@ -6,7 +6,6 @@ import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import java.util.EnumMap;
 import java.util.Map;
 
-/** Complete timing, range and family data for the abilities in plants.csv. */
 public final class PlantAbilityProfiles {
 
     private static final Map<PlantType, PlantAbilityProfile> PROFILES = new EnumMap<>(PlantType.class);
