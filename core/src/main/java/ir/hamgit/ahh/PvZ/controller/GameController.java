@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,6 +47,9 @@ public class GameController {
 
     public void startGame(String chapterName, int levelIndex) {
         scoreMode = false;
+        if (levelIndex < 1 || levelIndex > 4) {
+            throw new IllegalArgumentException("Adventure level must be between 1 and 4.");
+        }
         this.pendingChapter = parseChapter(chapterName);
         if (pendingChapter == null || pendingChapter == ChapterType.MINIGAME) {
             throw new IllegalArgumentException("Unknown adventure chapter: " + chapterName);
@@ -153,6 +157,10 @@ public class GameController {
             System.out.println("Select the plant before boosting it.");
             return false;
         }
+        if (boostedPlants.contains(type)) {
+            System.out.println("That plant is already boosted.");
+            return false;
+        }
         if (currentUser == null || !currentUser.spendDiamonds(BOOST_DIAMOND_COST)) {
             System.out.println("Not enough diamonds.");
             return false;
@@ -175,7 +183,6 @@ public class GameController {
             }
         }
     }
-
 
     public void startActualGame(int totalWaves) {
         if (pendingChapter == null) {
@@ -284,7 +291,6 @@ public class GameController {
         return killScore + speedScore + economyScore + survivalScore + defenseScore;
     }
 
-    
     public void advanceTime(int ticks) {
         if (board == null) {
             System.out.println("No level is currently running.");
@@ -456,7 +462,7 @@ public class GameController {
     }
 
     private String normalizeEnumName(String raw) {
-        return raw.trim().toUpperCase().replace(' ', '_').replace('-', '_');
+        return raw.trim().toUpperCase(Locale.ROOT).replace(' ', '_').replace('-', '_');
     }
 
     public Board getBoard() {

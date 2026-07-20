@@ -15,7 +15,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-/** Launches and owns one of the three-level minigame sessions. */
 public class MinigameController {
 
     private MinigameSession activeGame;
@@ -27,10 +26,16 @@ public class MinigameController {
         if (level < 1 || level > 3) {
             return false;
         }
-        activeName = normalize(name);
+        String normalizedName = normalize(name);
+        MinigameSession newGame = createGame(normalizedName, level);
+        if (newGame == null) {
+            return false;
+        }
+        activeName = normalizedName;
         activeLevel = level;
-        activeGame = createGame(activeName, level);
-        return activeGame != null;
+        activeGame = newGame;
+        commandRouter.showHelp(activeGame);
+        return true;
     }
 
     private MinigameSession createGame(String name, int level) {
@@ -56,10 +61,10 @@ public class MinigameController {
         List<ZombieType> pool = level == 1
             ? List.of(ZombieType.NORMAL, ZombieType.CONEHEAD, ZombieType.NORMAL)
             : level == 2
-                ? List.of(ZombieType.NORMAL, ZombieType.CONEHEAD, ZombieType.BUCKETHEAD,
-                    ZombieType.ALL_STAR, ZombieType.NORMAL)
-                : List.of(ZombieType.BUCKETHEAD, ZombieType.KNIGHT, ZombieType.ALL_STAR,
-                    ZombieType.GARGANTUAR, ZombieType.CONEHEAD, ZombieType.BLOCKHEAD);
+            ? List.of(ZombieType.NORMAL, ZombieType.CONEHEAD, ZombieType.BUCKETHEAD,
+            ZombieType.ALL_STAR, ZombieType.NORMAL)
+            : List.of(ZombieType.BUCKETHEAD, ZombieType.KNIGHT, ZombieType.ALL_STAR,
+            ZombieType.GARGANTUAR, ZombieType.CONEHEAD, ZombieType.BLOCKHEAD);
         return new WallnutBowlingGame(3, pool);
     }
 

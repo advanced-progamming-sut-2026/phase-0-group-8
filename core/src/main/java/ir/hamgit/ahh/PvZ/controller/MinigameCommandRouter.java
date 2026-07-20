@@ -12,6 +12,7 @@ import ir.hamgit.ahh.PvZ.view.BoardView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,6 +24,10 @@ final class MinigameCommandRouter {
     private static final Pattern COORD_PAIR = Pattern.compile("(-?\\d+)\\D+(-?\\d+)");
 
     void handle(MinigameSession session, String raw) {
+        if (raw != null && raw.trim().equalsIgnoreCase("help")) {
+            showHelp(session);
+            return;
+        }
         if (session instanceof VasebreakerGame game) {
             handleVasebreaker(game, raw);
         } else if (session instanceof WallnutBowlingGame game) {
@@ -36,6 +41,23 @@ final class MinigameCommandRouter {
         }
     }
 
+    void showHelp(MinigameSession session) {
+        String commands = "show map";
+        if (session instanceof VasebreakerGame) {
+            commands = "break vase -l (x,y); collect seed packet -l (x,y); "
+                + "plant plant -t <plant> -l (x,y)";
+        } else if (session instanceof WallnutBowlingGame) {
+            commands = "plant ball -l (x,y)";
+        } else if (session instanceof IZombieGame) {
+            commands = "place zombie -t <zombie> -l (x,y)";
+        } else if (session instanceof BeghouledGame) {
+            commands = "swap (x1,y1) (x2,y2); upgrade -f <plant> -t <plant>";
+        } else if (session instanceof ZombotanyGame) {
+            commands = "plant plant -t <plant> -l (x,y); collect sun -l (x,y)";
+        }
+        System.out.println("Commands: " + commands + "; advance time -t <ticks>; show map; help");
+    }
+
     private void handleVasebreaker(VasebreakerGame game, String raw) {
         String command = raw.trim();
         if (command.startsWith("break vase")) {
@@ -45,7 +67,7 @@ final class MinigameCommandRouter {
         } else if (command.startsWith("plant plant")) {
             plantVaseSeed(game, command);
         } else if (command.startsWith("advance time")) {
-            game.tick(ticks(command));
+            advance(ticks(command), game::tick);
         } else if (command.startsWith("show map")) {
             BoardView.showMap(game.getBoard());
         } else {
@@ -59,6 +81,8 @@ final class MinigameCommandRouter {
         PlantType type = plantType(flags.get("-t"), false);
         if (position != null && type != null) {
             game.plantHeldSeed(type, position[0], position[1]);
+        } else if (position == null) {
+            System.out.println("Coordinates are required as x,y.");
         }
     }
 
@@ -67,7 +91,7 @@ final class MinigameCommandRouter {
         if (command.startsWith("plant ball")) {
             applyCoordinates(command, game::plantBall);
         } else if (command.startsWith("advance time")) {
-            game.tick(ticks(command));
+            advance(ticks(command), game::tick);
         } else if (command.startsWith("show map")) {
             BoardView.showMap(game.getBoard());
         } else {
@@ -94,6 +118,8 @@ final class MinigameCommandRouter {
         int[] position = coordinates(raw);
         if (type != null && position != null) {
             game.placeZombie(type, position[0], position[1]);
+        } else if (position == null) {
+            System.out.println("Coordinates are required as x,y.");
         }
     }
 
@@ -104,7 +130,7 @@ final class MinigameCommandRouter {
         } else if (command.startsWith("upgrade")) {
             upgrade(game, command);
         } else if (command.startsWith("advance time")) {
-            game.tick(ticks(command));
+            advance(ticks(command), game::tick);
         } else if (command.startsWith("show map")) {
             BoardView.showMap(game.getBoard());
         } else {
@@ -121,6 +147,8 @@ final class MinigameCommandRouter {
         }
         if (values.size() == 4) {
             game.swapPlants(values.get(0), values.get(1), values.get(2), values.get(3));
+        } else {
+            System.out.println("Use swap with two x,y coordinate pairs.");
         }
     }
 
@@ -137,7 +165,7 @@ final class MinigameCommandRouter {
         Map<String, String> flags = CommandParser.parse(raw);
         String command = CommandParser.getCommand(flags);
         if (command.equals("advance time")) {
-            game.tick(CommandParser.getIntFlag(flags, "t", 1));
+            advance(CommandParser.getIntFlag(flags, "t", 1), game::tick);
         } else if (command.equals("plant plant")) {
             plantZombotany(game, flags);
         } else if (command.equals("collect sun")) {
@@ -152,7 +180,9 @@ final class MinigameCommandRouter {
     private void plantZombotany(ZombotanyGame game, Map<String, String> flags) {
         PlantType type = plantType(CommandParser.getFlag(flags, "t"), true);
         int[] position = coordinates(CommandParser.getFlag(flags, "l"));
-        if (type != null && (position == null || !game.plant(type, position[0], position[1]))) {
+        if (position == null) {
+            System.out.println("Coordinates are required as x,y.");
+        } else if (type != null && !game.plant(type, position[0], position[1])) {
             System.out.println("Could not plant there.");
         }
     }
@@ -161,6 +191,8 @@ final class MinigameCommandRouter {
         int[] position = coordinates(CommandParser.getFlag(flags, "l"));
         if (position != null) {
             game.collectSun(position[0], position[1]);
+        } else {
+            System.out.println("Coordinates are required as x,y.");
         }
     }
 
@@ -168,13 +200,21 @@ final class MinigameCommandRouter {
         return CommandParser.getIntFlag(CommandParser.parse(raw), "-t", 1);
     }
 
+    private void advance(int ticks, TickAction action) {
+        if (ticks <= 0) {
+            System.out.println("Time must advance by a positive number of ticks.");
+            return;
+        }
+        action.apply(ticks);
+    }
+
     private PlantType plantType(String raw, boolean normalize) {
         if (raw == null) {
             return null;
         }
         try {
-            String name = raw.trim().toUpperCase();
-            return PlantType.valueOf(normalize ? name.replace('-', '_').replace(' ', '_') : name);
+            String name = raw.trim().toUpperCase(Locale.ROOT).replace('-', '_').replace(' ', '_');
+            return PlantType.valueOf(name);
         } catch (IllegalArgumentException e) {
             System.out.println(normalize ? "Unknown plant type." : "Unknown plant type: " + raw);
             return null;
@@ -186,7 +226,8 @@ final class MinigameCommandRouter {
             return null;
         }
         try {
-            return ZombieType.valueOf(raw.trim().toUpperCase());
+            String name = raw.trim().toUpperCase(Locale.ROOT).replace('-', '_').replace(' ', '_');
+            return ZombieType.valueOf(name);
         } catch (IllegalArgumentException e) {
             System.out.println("Unknown zombie type: " + raw);
             return null;
@@ -197,6 +238,8 @@ final class MinigameCommandRouter {
         int[] position = coordinates(raw);
         if (position != null) {
             action.apply(position[0], position[1]);
+        } else {
+            System.out.println("Coordinates are required as x,y.");
         }
     }
 
@@ -212,5 +255,10 @@ final class MinigameCommandRouter {
     @FunctionalInterface
     private interface CoordinateAction {
         void apply(int x, int lane);
+    }
+
+    @FunctionalInterface
+    private interface TickAction {
+        void apply(int ticks);
     }
 }
