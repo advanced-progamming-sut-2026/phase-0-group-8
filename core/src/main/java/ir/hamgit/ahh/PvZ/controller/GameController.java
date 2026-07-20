@@ -1,11 +1,15 @@
 package ir.hamgit.ahh.PvZ.controller;
-
-
 import ir.hamgit.ahh.PvZ.model.Board;
+import ir.hamgit.ahh.PvZ.model.quest.LevelQuestTelemetry;
+import ir.hamgit.ahh.PvZ.model.entities.Plant;
+import ir.hamgit.ahh.PvZ.model.quest.QuestService;
 import ir.hamgit.ahh.PvZ.model.User;
 import ir.hamgit.ahh.PvZ.model.def.PlantDef;
 import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
+import ir.hamgit.ahh.PvZ.model.def.PlantLevelEffects;
+import ir.hamgit.ahh.PvZ.model.def.PlantAbilityProfiles;
 import ir.hamgit.ahh.PvZ.model.enums.*;
+import ir.hamgit.ahh.PvZ.model.repository.UserRepository;
 import ir.hamgit.ahh.PvZ.model.special.*;
 
 import java.util.ArrayList;
@@ -14,23 +18,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-/**
- * Owns a single play-through of a level: plant selection, the {@link Board}
- * simulation, and translating raw CLI command strings into board calls.
- * Menu navigation (which top-level menu the player is in) is the menu
- * teammate's job - see MenuController/GameMenu in the class reference.
- *
- * <p>Which {@link SpecialLevelType} shows up as level 2 / level 3 of each
- * chapter is a design choice, not something the spec pins down beyond "each
- * of the 8 special types appears exactly once across Adventure" - see
- * {@link #specialTypeFor(ChapterType, int)}. Change the mapping freely.</p>
- */
 public class GameController {
 
-    private static final Pattern COORD_PATTERN = Pattern.compile("(-?\\d+)\\s*,\\s*(-?\\d+)");
     private static final int DEFAULT_PLANT_SLOTS = 8;
     private static final int BOOST_DIAMOND_COST = 2;
 
@@ -43,21 +33,23 @@ public class GameController {
     private final Set<PlantType> boostedPlants = new HashSet<>();
     private final Map<PlantType, Integer> plantCooldowns = new EnumMap<>(PlantType.class);
     private int difficulty = 3;
+    private boolean scoreMode;
+    private final GameCommandRouter commandRouter = new GameCommandRouter(this);
 
     public GameController(User user) {
         this.currentUser = user;
     }
-
-    // ------------------------------------------------------------------
-    // Chapter selection -> plant selection -> actual game
-    // ------------------------------------------------------------------
 
     public void startGame(String chapterName) {
         startGame(chapterName, 1);
     }
 
     public void startGame(String chapterName, int levelIndex) {
-        this.pendingChapter = ChapterType.valueOf(chapterName.trim().toUpperCase());
+        scoreMode = false;
+        this.pendingChapter = parseChapter(chapterName);
+        if (pendingChapter == null || pendingChapter == ChapterType.MINIGAME) {
+            throw new IllegalArgumentException("Unknown adventure chapter: " + chapterName);
+        }
         this.pendingLevelIndex = levelIndex;
         this.difficulty = currentUser != null ? currentUser.getDifficulty() : 3;
         this.pendingSpecialLevelHandler = buildHandlerFor(pendingChapter, levelIndex);
@@ -85,7 +77,7 @@ public class GameController {
             case CONVEYOR_BELT -> new ConveyorBeltLevel(new ArrayList<>(unlockedOrAll()));
             case LOCKED_PLANTS -> LockedPlantsLevel.familyLockout(Tag.PEA, PlantType.PEASHOOTER);
             case SAVE_OUR_SEEDS -> new SaveOurSeedsLevel(3);
-            case TIMED_WAR -> new TimedWarLevel(false, 12, 5 * Board.TICKS_PER_SECOND * 60);
+            case TIMED_WAR -> new TimedWarLevel(false, 12, 5 * Board.TICKS_PER_SECOND);
             case NIGHT_OPS -> new NightOpsLevel();
             case DEAD_LINE -> new DeadLineLevel(4);
             case LOVE_YOUR_PLANTS -> new LoveYourPlantsLevel(5);
@@ -125,10 +117,6 @@ public class GameController {
         }
         return all;
     }
-
-    // ------------------------------------------------------------------
-    // Plant selection commands
-    // ------------------------------------------------------------------
 
     public boolean selectPlant(PlantType type) {
         if (!isSelectableNow(type) || selectedPlants.contains(type)) {
@@ -170,6 +158,7 @@ public class GameController {
             return false;
         }
         boostedPlants.add(type);
+        UserRepository.updateUser(currentUser);
         return true;
     }
 
@@ -187,38 +176,124 @@ public class GameController {
         }
     }
 
-    // ------------------------------------------------------------------
-    // Start the actual game after plant selection
-    // ------------------------------------------------------------------
 
     public void startActualGame(int totalWaves) {
+        if (pendingChapter == null) {
+            throw new IllegalStateException("Choose a chapter before starting the game.");
+        }
         SpecialLevelType type = pendingSpecialLevelHandler != null
             ? specialTypeFor(pendingChapter, pendingLevelIndex) : null;
         board = new Board(pendingChapter, totalWaves, difficulty, type, pendingSpecialLevelHandler);
+        LevelQuestTelemetry.start(board);
         if (pendingSpecialLevelHandler != null && pendingSpecialLevelHandler.getInitialSun() >= 0) {
             board.setSunAmount(pendingSpecialLevelHandler.getInitialSun());
         }
         if (currentUser != null) {
-            for (PlantType boosted : boostedPlants) {
-                currentUser.storeBoost(boosted);
+            int storedFood = currentUser.takeStoredPlantFood();
+            for (int i = 0; i < storedFood; i++) {
+                board.incrementPlantFoodCount();
             }
+            UserRepository.updateUser(currentUser);
         }
     }
 
     public void endGame(boolean won) {
+        if (board == null) {
+            return;
+        }
         if (currentUser != null) {
             currentUser.addCoins(board.drainCoinsEarned());
             currentUser.addDiamonds(board.drainDiamondsEarned());
+            grantEarnedPots();
+            currentUser.incrementGamesPlayed();
+            QuestService.recordGamePlayed(currentUser);
+            for (ZombieType type : board.getEncounteredZombies()) {
+                currentUser.seeZombie(type);
+            }
+            if (scoreMode) {
+                int score = calculateScore();
+                currentUser.updateBestScore(score);
+                System.out.println("Score-mode result: " + score + " myopoints.");
+            } else if (won) {
+                currentUser.completeLevel(pendingChapter, pendingLevelIndex);
+                QuestService.recordLevelCompletion(currentUser);
+                unlockProgressPlant();
+            }
+            QuestService.recordLevelOutcome(currentUser, board, selectedPlants, pendingChapter, won);
+            UserRepository.updateUser(currentUser);
         }
         System.out.println(won ? "Level complete!" : "Level failed.");
         board = null;
     }
 
-    // ------------------------------------------------------------------
-    // In-game command routing
-    // ------------------------------------------------------------------
+    private void unlockProgressPlant() {
+        if (currentUser == null) {
+            return;
+        }
+        for (PlantDef def : PlantRegistry.getAll()) {
+            if (!currentUser.hasPlant(def.getType())) {
+                currentUser.unlockPlant(def.getType());
+                break;
+            }
+        }
+    }
 
+    public boolean finishIfOver() {
+        if (board == null || !board.isGameOver()) {
+            return false;
+        }
+        endGame(board.isPlayerWon());
+        return true;
+    }
+
+    public void abandonGame() {
+        if (board != null) {
+            endGame(false);
+        }
+    }
+
+    public boolean shouldSkipPlantSelection() {
+        return pendingSpecialLevelHandler instanceof ConveyorBeltLevel;
+    }
+
+    public int getDefaultTotalWaves() {
+        return 2 + Math.max(1, pendingLevelIndex);
+    }
+
+    public boolean canStartSelectedGame() {
+        return shouldSkipPlantSelection() || !selectedPlants.isEmpty();
+    }
+
+    public void startScoreMode() {
+        scoreMode = true;
+        pendingChapter = ChapterType.ANCIENT_EGYPT;
+        pendingLevelIndex = 1;
+        difficulty = currentUser == null ? 3 : currentUser.getDifficulty();
+        pendingSpecialLevelHandler = null;
+        selectedPlants.clear();
+        boostedPlants.clear();
+        plantCooldowns.clear();
+    }
+
+    private int calculateScore() {
+        int killScore = board.getZombiesKilled() * 100;
+        int speedScore = Math.max(0, 3000 - board.getTickCount());
+        int economyScore = board.getSunAmount() * 2;
+        int survivalScore = board.getPlantsRemaining() * 50;
+        int defenseScore = board.getMowersRemaining() * 250;
+        return killScore + speedScore + economyScore + survivalScore + defenseScore;
+    }
+
+    
     public void advanceTime(int ticks) {
+        if (board == null) {
+            System.out.println("No level is currently running.");
+            return;
+        }
+        if (ticks <= 0) {
+            System.out.println("Time must advance by a positive number of ticks.");
+            return;
+        }
         board.advanceTime(ticks);
         flushCurrencyToUser();
         for (Map.Entry<PlantType, Integer> entry : new EnumMap<>(plantCooldowns).entrySet()) {
@@ -231,86 +306,43 @@ public class GameController {
         }
     }
 
-    private void flushCurrencyToUser() {
+    void flushCurrencyToUser() {
         if (currentUser != null) {
-            currentUser.addCoins(board.drainCoinsEarned());
-            currentUser.addDiamonds(board.drainDiamondsEarned());
+            int coins = board.drainCoinsEarned();
+            int diamonds = board.drainDiamondsEarned();
+            int pots = board.drainPotsEarned();
+            currentUser.addCoins(coins);
+            currentUser.addDiamonds(diamonds);
+            for (int i = 0; i < pots && currentUser.getPotCount() < 20; i++) {
+                currentUser.unlockNextPot();
+            }
+            if (coins > 0 || diamonds > 0 || pots > 0) {
+                UserRepository.updateUser(currentUser);
+            }
+        }
+    }
+
+    private void grantEarnedPots() {
+        int pots = board.drainPotsEarned();
+        for (int i = 0; i < pots && currentUser.getPotCount() < 20; i++) {
+            currentUser.unlockNextPot();
         }
     }
 
     public void handleCommand(String raw) {
-        String trimmed = raw.trim();
-        if (trimmed.startsWith("advance time")) {
-            handleAdvanceTime(trimmed);
-        } else if (trimmed.startsWith("plant plant")) {
-            handlePlantPlant(trimmed);
-        } else if (trimmed.startsWith("pluck plant")) {
-            handlePluckPlant(trimmed);
-        } else if (trimmed.startsWith("feed plant")) {
-            handleFeedPlant(trimmed);
-        } else if (trimmed.startsWith("collect sun")) {
-            handleCollectSun(trimmed);
-        } else if (trimmed.startsWith("cheat")) {
-            handleCheat(trimmed);
-        } else if (trimmed.startsWith("show map")) {
-            board.showMap();
-        } else if (trimmed.startsWith("show plants status")) {
-            board.showPlantsStatus();
-        } else if (trimmed.startsWith("show tile status")) {
-            handleShowTileStatus(trimmed);
-        } else if (trimmed.startsWith("show sun amount")) {
-            board.showSunAmount();
-        } else if (trimmed.startsWith("zombies info")) {
-            board.showZombiesInfo();
-        } else if (trimmed.startsWith("show all plants")) {
-            showAllPlants();
-        } else if (trimmed.startsWith("show available plants")) {
-            showAvailablePlants();
-        } else if (trimmed.startsWith("add plant")) {
-            selectPlant(parsePlantType(CommandParser.getFlag(CommandParser.parse(trimmed), "-t")));
-        } else if (trimmed.startsWith("remove plant")) {
-            removePlantSelection(parsePlantType(CommandParser.getFlag(CommandParser.parse(trimmed), "-t")));
-        } else if (trimmed.startsWith("boost plant")) {
-            boostPlant(parsePlantType(CommandParser.getFlag(CommandParser.parse(trimmed), "-t")));
-        } else if (trimmed.equals("start zombie waves") || trimmed.equals("release the nuke")) {
-            handleBareCommand(trimmed);
-        } else {
-            System.out.println("Unknown command: " + raw);
-        }
+        commandRouter.handle(raw);
     }
 
-    private void handleBareCommand(String trimmed) {
-        if (trimmed.equals("start zombie waves")) {
-            board.startZombieWaves();
-        } else {
-            board.cheatReleaseNuke();
+    boolean plantSelected(PlantType type, int x, int lane) {
+        int level = currentUser == null ? 1 : currentUser.getPlantLevel(type);
+        int cost = Math.max(0, PlantRegistry.get(type).getSunCost()
+            - PlantLevelEffects.sum(type, level, "Cost -"));
+        if (!isPlantableRightNow(type) || !board.plantPlant(type, x, lane, cost, level)) {
+            return false;
         }
-    }
-
-    private void handleAdvanceTime(String raw) {
-        Map<String, String> flags = CommandParser.parse(raw);
-        int ticks = CommandParser.getIntFlag(flags, "-t", 1);
-        advanceTime(ticks);
-    }
-
-    private void handlePlantPlant(String raw) {
-        Map<String, String> flags = CommandParser.parse(raw);
-        PlantType type = parsePlantType(flags.get("-t"));
-        int[] coords = parseCoordinates(flags.get("-l"));
-        if (type == null || coords == null) {
-            System.out.println("Invalid plant command.");
-            return;
-        }
-        if (!isPlantableRightNow(type)) {
-            System.out.println("You cannot plant " + type + " right now.");
-            return;
-        }
-        boolean success = board.plantPlant(type, coords[0], coords[1]);
-        if (success) {
-            afterSuccessfulPlant(type);
-        } else {
-            System.out.println("Could not plant " + type + " at (" + coords[0] + ", " + coords[1] + ").");
-        }
+        LevelQuestTelemetry.recordPlant(board, type);
+        afterSuccessfulPlant(type, x, lane);
+        return true;
     }
 
     private boolean isPlantableRightNow(PlantType type) {
@@ -323,89 +355,67 @@ public class GameController {
         return selected && (waitingForFreePlanting || offCooldown);
     }
 
-    private void afterSuccessfulPlant(PlantType type) {
+    private void afterSuccessfulPlant(PlantType type, int x, int lane) {
+        applyPlantLevel(type, x, lane);
         if (board.getSpecialLevelHandler() instanceof ConveyorBeltLevel belt) {
             belt.consumeOffer(type);
         } else if (!board.getSpecialLevelHandler().waitsForManualWaveStart()) {
             PlantDef def = PlantRegistry.get(type);
-            plantCooldowns.put(type, def.getRechargeSeconds() * Board.TICKS_PER_SECOND);
+            int level = currentUser == null ? 1 : currentUser.getPlantLevel(type);
+            int reduction = PlantLevelEffects.sum(type, level, "Cooldown -") * Board.TICKS_PER_SECOND;
+            int cooldown = def.getRechargeSeconds() * Board.TICKS_PER_SECOND - reduction;
+            plantCooldowns.put(type, Math.max(1, cooldown));
         }
-        if (boostedPlants.remove(type)) {
+        resetFamilyCooldownsIfUpgradedMint(type);
+        boolean greenhouseBoost = currentUser != null && currentUser.consumePlantBoost(type);
+        Plant placedPlant = board.getTileAt(x, lane).getPlant();
+        if (placedPlant != null && (boostedPlants.contains(type) || greenhouseBoost)) {
+            placedPlant.applyPlantFood(board);
             System.out.println(type + " was planted boosted by Plant Food!");
+            if (greenhouseBoost) {
+                UserRepository.updateUser(currentUser);
+            }
         }
     }
 
-    private void handlePluckPlant(String raw) {
-        Map<String, String> flags = CommandParser.parse(raw);
-        int[] coords = parseCoordinates(flags.get("-l"));
-        if (coords == null || !board.pluckPlant(coords[0], coords[1])) {
-            System.out.println("Could not pluck a plant there.");
-        }
-    }
-
-    private void handleFeedPlant(String raw) {
-        Map<String, String> flags = CommandParser.parse(raw);
-        int[] coords = parseCoordinates(flags.get("-l"));
-        if (coords == null || !board.feedPlant(coords[0], coords[1])) {
-            System.out.println("Could not feed a plant there.");
-        }
-    }
-
-    private void handleCollectSun(String raw) {
-        Map<String, String> flags = CommandParser.parse(raw);
-        int[] coords = parseCoordinates(flags.get("-l"));
-        if (coords == null) {
-            System.out.println("Invalid coordinates.");
+    private void resetFamilyCooldownsIfUpgradedMint(PlantType type) {
+        int level = currentUser == null ? 1 : currentUser.getPlantLevel(type);
+        if (!PlantLevelEffects.has(type, level, "reset family cooldowns")) {
             return;
         }
-        boolean got = board.collectSun(coords[0], coords[1]) || board.collectFallingSun(coords[0], coords[1]);
-        if (!got) {
-            System.out.println("No sun to collect there.");
-        }
-        flushCurrencyToUser();
+        PlantFamily family = PlantAbilityProfiles.getFamily(type);
+        plantCooldowns.keySet().removeIf(candidate -> PlantAbilityProfiles.getFamily(candidate) == family);
     }
 
-    private void handleShowTileStatus(String raw) {
-        Map<String, String> flags = CommandParser.parse(raw);
-        int[] coords = parseCoordinates(flags.get("-l"));
-        if (coords != null) {
-            board.showTileStatus(coords[0], coords[1]);
+    private void applyPlantLevel(PlantType type, int x, int lane) {
+        if (currentUser == null) {
+            return;
         }
-    }
-
-    private void handleCheat(String raw) {
-        Map<String, String> flags = CommandParser.parse(raw);
-        if (raw.contains("add-plant-food")) {
-            board.cheatAddPlantFood();
-        } else if (raw.contains("remove-cooldown")) {
-            plantCooldowns.clear();
-            board.cheatRemoveCooldownNoop();
-        } else if (raw.contains("spawn-zombie")) {
-            handleCheatSpawnZombie(flags);
-        } else if (raw.contains("release") && raw.contains("nuke")) {
-            board.cheatReleaseNuke();
-        } else if (raw.contains("add")) {
-            handleCheatAdd(raw, flags);
+        Plant plant = board.getTileAt(x, lane).getPlant();
+        if (plant != null) {
+            plant.setLevel(currentUser.getPlantLevel(type));
+            if (type == PlantType.IMITATER
+                && PlantLevelEffects.has(type, currentUser.getPlantLevel(type),
+                "plant food on enterance")) {
+                plant.applyPlantFood(board);
+            }
         }
     }
 
-    private void handleCheatSpawnZombie(Map<String, String> flags) {
-        ZombieType type = parseZombieType(flags.get("-t"));
-        int[] coords = parseCoordinates(flags.get("-l"));
-        if (type != null && coords != null) {
-            board.cheatSpawnZombie(type, coords[0], coords[1]);
-        }
+    void clearCooldowns() {
+        plantCooldowns.clear();
     }
 
-    private void handleCheatAdd(String raw, Map<String, String> flags) {
-        int n = CommandParser.getIntFlag(flags, "-n", 0);
-        if (raw.contains("sun")) {
-            board.cheatAddSuns(n);
-        } else if (raw.contains("coin")) {
-            currentUser.addCoins(n);
-        } else if (raw.contains("diamond")) {
-            currentUser.addDiamonds(n);
+    void addPersistentCurrency(int amount, boolean diamonds) {
+        if (currentUser == null || amount < 0) {
+            return;
         }
+        if (diamonds) {
+            currentUser.addDiamonds(amount);
+        } else {
+            currentUser.addCoins(amount);
+        }
+        UserRepository.updateUser(currentUser);
     }
 
     private PlantType parsePlantType(String raw) {
@@ -413,32 +423,40 @@ public class GameController {
             return null;
         }
         try {
-            return PlantType.valueOf(raw.trim().toUpperCase().replace(' ', '_'));
+            return PlantType.valueOf(normalizeEnumName(raw));
         } catch (IllegalArgumentException e) {
             return null;
         }
     }
 
-    private ZombieType parseZombieType(String raw) {
+    ZombieType parseZombieName(String raw) {
         if (raw == null) {
             return null;
         }
         try {
-            return ZombieType.valueOf(raw.trim().toUpperCase().replace(' ', '_'));
+            return ZombieType.valueOf(normalizeEnumName(raw));
         } catch (IllegalArgumentException e) {
             return null;
         }
     }
 
-    private int[] parseCoordinates(String raw) {
+    public PlantType parsePlantName(String raw) {
+        return parsePlantType(raw);
+    }
+
+    private ChapterType parseChapter(String raw) {
         if (raw == null) {
             return null;
         }
-        Matcher m = COORD_PATTERN.matcher(raw);
-        if (!m.find()) {
+        try {
+            return ChapterType.valueOf(normalizeEnumName(raw));
+        } catch (IllegalArgumentException e) {
             return null;
         }
-        return new int[] {Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2))};
+    }
+
+    private String normalizeEnumName(String raw) {
+        return raw.trim().toUpperCase().replace(' ', '_').replace('-', '_');
     }
 
     public Board getBoard() {
@@ -447,5 +465,9 @@ public class GameController {
 
     public Set<PlantType> getSelectedPlants() {
         return selectedPlants;
+    }
+
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
     }
 }
