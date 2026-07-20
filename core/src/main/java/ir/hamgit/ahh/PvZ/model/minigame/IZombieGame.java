@@ -12,20 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/**
- * "من زامبی" (I, Zombie). Player controls zombies instead of plants against
- * a handful of pre-placed defending plants.
- *
- * <p>Reuses {@link Board}/{@link Zombie} entirely unmodified: a "brain" at the
- * left edge of a row is mechanically identical to a lawn mower (first zombie
- * to reach it "eats" it), so instead of reimplementing that, this class just
- * watches {@link Board#getLawnMowerAvailability()} flip from available to
- * used and counts that as a brain eaten. The one pre-existing zombie per row
- * that generates the player's zombie-currency is a repurposed Bucketheaded
- * zombie (matches the spec's "same HP as a bucket zombie" note) - real
- * level content (which 5 zombies + costs are offered, exact defender
- * layout) is level-design data the team can pass in or hardcode later.</p>
- */
+
 public class IZombieGame implements MinigameSession {
 
     private static final int STARTING_SUN = 150;
@@ -80,8 +67,12 @@ public class IZombieGame implements MinigameSession {
     }
 
     public boolean placeZombie(ZombieType type, int x, int lane) {
-        if (type == PRODUCER_TYPE || !availableZombies.contains(type)) {
+        if (type == null || !availableZombies.contains(type)) {
             System.out.println("That zombie isn't available to you.");
+            return false;
+        }
+        if (x < 0 || x > board.getColumns() || lane < 0 || lane >= board.getRows()) {
+            System.out.println("That zombie position is outside the board.");
             return false;
         }
         int cost = costs.getOrDefault(type, Integer.MAX_VALUE);
@@ -95,6 +86,9 @@ public class IZombieGame implements MinigameSession {
     }
 
     public void tick(int ticks) {
+        if (ticks <= 0) {
+            return;
+        }
         for (int i = 0; i < ticks; i++) {
             advanceOneTick();
         }

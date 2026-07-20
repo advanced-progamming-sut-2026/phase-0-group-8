@@ -124,6 +124,9 @@ public class VasebreakerGame implements MinigameSession {
     }
 
     public void tick(int ticks) {
+        if (ticks <= 0) {
+            return;
+        }
         for (int i = 0; i < ticks; i++) {
             tickSeedExpiry();
             board.advanceTime(1);

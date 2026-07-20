@@ -26,7 +26,10 @@ public class Validator {
         if (!password.matches(".*[0-9].*")) {
             return "Password must contain at least one digit.";
         }
-        if (!password.matches(".*[!#$%^&*()=+}\\{\\[\\]|/\\\\:;'\",.><? ].*")) {
+        if (password.chars().anyMatch(Character::isWhitespace)) {
+            return "Password cannot contain whitespace.";
+        }
+        if (password.chars().noneMatch(character -> !Character.isLetterOrDigit(character))) {
             return "Password must contain at least one special character.";
         }
         return null;

@@ -52,7 +52,9 @@ public class WallnutBowlingGame implements MinigameSession {
     }
 
     public boolean plantBall(int x, int lane) {
-        if (x > redLineColumn || queue.isEmpty()) {
+        boolean outsideBoard = x < 0 || x >= board.getColumns()
+            || lane < 0 || lane >= board.getRows();
+        if (outsideBoard || x > redLineColumn || queue.isEmpty()) {
             System.out.println("Can't place a ball there.");
             return false;
         }
@@ -62,6 +64,9 @@ public class WallnutBowlingGame implements MinigameSession {
     }
 
     public void tick(int ticks) {
+        if (ticks <= 0) {
+            return;
+        }
         for (int i = 0; i < ticks; i++) {
             advanceOneTick();
         }

@@ -5,7 +5,6 @@ import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.enums.ChapterType;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.special.BeghouledLevelHandler;
-import ir.hamgit.ahh.PvZ.model.special.MinigameLevelHandler;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -251,8 +250,12 @@ public class BeghouledGame implements MinigameSession {
 
     private boolean hasNoPossibleMove() {
         for (int r = 0; r < board.getRows(); r++) {
-            for (int c = 0; c < board.getColumns() - 1; c++) {
-                if (swapWouldMatch(r, c, r, c + 1) || swapWouldMatch(r, c, r + 1 < board.getRows() ? r + 1 : r, c)) {
+            for (int c = 0; c < board.getColumns(); c++) {
+                boolean rightMatch = c + 1 < board.getColumns()
+                    && swapWouldMatch(r, c, r, c + 1);
+                boolean downMatch = r + 1 < board.getRows()
+                    && swapWouldMatch(r, c, r + 1, c);
+                if (rightMatch || downMatch) {
                     return false;
                 }
             }
@@ -282,7 +285,7 @@ public class BeghouledGame implements MinigameSession {
 
     public boolean upgrade(PlantType from, PlantType to) {
         Integer cost = upgradeCost.get(from);
-        if (cost == null || !to.equals(upgrades.get(from)) || cost > sunAmount) {
+        if (cost == null || to == null || to != upgrades.get(from) || cost > sunAmount) {
             System.out.println("Can't upgrade that.");
             return false;
         }
@@ -303,7 +306,9 @@ public class BeghouledGame implements MinigameSession {
     }
 
     public void tick(int ticks) {
-        board.advanceTime(ticks);
+        if (ticks > 0) {
+            board.advanceTime(ticks);
+        }
     }
 
     public boolean isOver() {
