@@ -1,6 +1,5 @@
 package ir.hamgit.ahh.PvZ.model.minigame;
 
-import ir.hamgit.ahh.PvZ.controller.CommandParser;
 import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.entities.Zombie;
 import ir.hamgit.ahh.PvZ.model.enums.ChapterType;
@@ -12,8 +11,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * "من زامبی" (I, Zombie). Player controls zombies instead of plants against
@@ -29,9 +26,8 @@ import java.util.regex.Pattern;
  * level content (which 5 zombies + costs are offered, exact defender
  * layout) is level-design data the team can pass in or hardcode later.</p>
  */
-public class IZombieGame {
+public class IZombieGame implements MinigameSession {
 
-    private static final Pattern COORD_PATTERN = Pattern.compile("(-?\\d+)\\s*,\\s*(-?\\d+)");
     private static final int STARTING_SUN = 150;
     private static final int PRODUCER_INTERVAL_TICKS = 100;
     private static final int PRODUCER_BASE_AMOUNT = 10;
@@ -49,6 +45,7 @@ public class IZombieGame {
 
     public IZombieGame(List<ZombieType> availableZombies, Map<ZombieType, Integer> costs) {
         this.board = new Board(ChapterType.MINIGAME, 1, 3, null, new MinigameLevelHandler());
+        this.board.enableBrainMode();
         this.availableZombies = availableZombies;
         this.costs = costs;
         this.brainAvailable = new boolean[board.getRows()];
@@ -58,7 +55,8 @@ public class IZombieGame {
     }
 
     private void placeRandomDefenders() {
-        List<PlantType> pool = List.of(PlantType.WALLNUT, PlantType.PEASHOOTER, PlantType.SNOW_PEA, PlantType.TALL_NUT);
+        List<PlantType> pool = List.of(PlantType.WALL_NUT, PlantType.PEASHOOTER,
+            PlantType.SNOW_PEA, PlantType.TALL_NUT);
         for (int r = 0; r < board.getRows(); r++) {
             placeDefendersInRow(r, pool);
         }
@@ -77,6 +75,7 @@ public class IZombieGame {
         for (int r = 0; r < board.getRows(); r++) {
             board.spawnZombieAt(PRODUCER_TYPE, r, board.getColumns() - 1);
             producers.add(board.getZombies().get(board.getZombies().size() - 1));
+            producers.get(producers.size() - 1).setStationary(true);
         }
     }
 
@@ -141,7 +140,7 @@ public class IZombieGame {
 
     public boolean isLost() {
         boolean outOfSun = availableZombies.stream()
-                .allMatch(t -> costs.getOrDefault(t, Integer.MAX_VALUE) > sunAmount);
+            .allMatch(t -> costs.getOrDefault(t, Integer.MAX_VALUE) > sunAmount);
         boolean noZombiesLeft = board.getZombies().stream().noneMatch(Zombie::isAlive);
         return !won && outOfSun && noZombiesLeft;
     }
@@ -152,42 +151,6 @@ public class IZombieGame {
 
     public boolean isWon() {
         return won;
-    }
-
-    public void handle(String raw) {
-        String trimmed = raw.trim();
-        if (trimmed.startsWith("place zombie")) {
-            handlePlaceZombie(trimmed);
-        } else if (trimmed.startsWith("advance time")) {
-            Map<String, String> flags = CommandParser.parse(trimmed);
-            tick(CommandParser.getIntFlag(flags, "-t", 1));
-        } else if (trimmed.startsWith("show map")) {
-            board.showMap();
-        } else {
-            System.out.println("Unknown I-Zombie command: " + raw);
-        }
-    }
-
-    private void handlePlaceZombie(String raw) {
-        Map<String, String> flags = CommandParser.parse(raw);
-        ZombieType type = parseZombieType(flags.get("-t"));
-        Matcher m = COORD_PATTERN.matcher(raw);
-        if (type == null || !m.find()) {
-            return;
-        }
-        placeZombie(type, Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)));
-    }
-
-    private ZombieType parseZombieType(String raw) {
-        if (raw == null) {
-            return null;
-        }
-        try {
-            return ZombieType.valueOf(raw.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            System.out.println("Unknown zombie type: " + raw);
-            return null;
-        }
     }
 
     public Board getBoard() {
