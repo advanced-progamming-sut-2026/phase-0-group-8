@@ -2,7 +2,7 @@ package ir.hamgit.ahh.PvZ.model.minigame;
 
 import ir.hamgit.ahh.PvZ.controller.CommandParser;
 import ir.hamgit.ahh.PvZ.model.Board;
-import ir.hamgit.ahh.PvZ.model.Zombie;
+import ir.hamgit.ahh.PvZ.model.entities.Zombie;
 import ir.hamgit.ahh.PvZ.model.enums.ChapterType;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;

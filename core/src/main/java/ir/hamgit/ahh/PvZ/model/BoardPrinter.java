@@ -1,8 +1,10 @@
 package ir.hamgit.ahh.PvZ.model;
 
-import ir.hamgit.ahh.PvZ.model.*;
 import ir.hamgit.ahh.PvZ.model.def.PlantDef;
 import ir.hamgit.ahh.PvZ.model.def.PlantRegistry;
+import ir.hamgit.ahh.PvZ.model.entities.Armor;
+import ir.hamgit.ahh.PvZ.model.entities.Plant;
+import ir.hamgit.ahh.PvZ.model.entities.Zombie;
 
 /**
  * Formats the various {@code show ...} CLI commands. Split out of

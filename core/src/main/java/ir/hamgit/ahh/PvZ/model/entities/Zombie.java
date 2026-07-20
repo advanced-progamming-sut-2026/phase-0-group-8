@@ -1,7 +1,8 @@
-package ir.hamgit.ahh.PvZ.model;
+package ir.hamgit.ahh.PvZ.model.entities;
 
 
 
+import ir.hamgit.ahh.PvZ.model.*;
 import ir.hamgit.ahh.PvZ.model.def.ZombieDef;
 import ir.hamgit.ahh.PvZ.model.enums.*;
 

@@ -1,5 +1,7 @@
 package ir.hamgit.ahh.PvZ.model;
 
+import ir.hamgit.ahh.PvZ.model.entities.Plant;
+import ir.hamgit.ahh.PvZ.model.entities.Zombie;
 import ir.hamgit.ahh.PvZ.model.enums.ArmorType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
 

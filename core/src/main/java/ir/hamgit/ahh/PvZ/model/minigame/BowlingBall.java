@@ -2,23 +2,10 @@ package ir.hamgit.ahh.PvZ.model.minigame;
 
 
 import ir.hamgit.ahh.PvZ.model.Board;
-import ir.hamgit.ahh.PvZ.model.Zombie;
+import ir.hamgit.ahh.PvZ.model.entities.Zombie;
 
-/**
- * A rolling ball for the Wallnut Bowling minigame. Unlike {@code model.Projectile}
- * it isn't fired by a plant sitting on a tile - it's placed directly on the lawn
- * and keeps moving (and, for the normal ball, bouncing) until it runs out of board.
- *
- * <p>Simplification: the real game changes the ball's bounce <em>angle</em>
- * (45° then 90°) on each hit/wall-bounce, which needs true 2D movement this
- * project's lane-based board doesn't have. Here a normal ball just reverses
- * direction on a hit or a wall, which preserves the "keeps going until it runs
- * out of board" feel without the angle math.</p>
- */
 public class BowlingBall {
 
-    /** BOWLING = plain Wall-nut bowling ball, EXPLODE_O_NUT = explodes in a 3x3 area on
-     *  its first hit, GIANT = crushes through zombies without bouncing or dying. */
     public enum Kind { BOWLING, EXPLODE_O_NUT, GIANT }
 
     private static final double SPEED_TILES_PER_TICK = 0.6;

@@ -1,4 +1,4 @@
-package ir.hamgit.ahh.PvZ.model;
+package ir.hamgit.ahh.PvZ.model.entities;
 
 import ir.hamgit.ahh.PvZ.model.enums.ArmorType;
 

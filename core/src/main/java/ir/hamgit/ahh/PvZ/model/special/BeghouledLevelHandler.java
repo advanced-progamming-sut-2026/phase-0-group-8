@@ -2,7 +2,7 @@ package ir.hamgit.ahh.PvZ.model.special;
 
 import ir.hamgit.ahh.PvZ.model.minigame.BeghouledGame;
 import ir.hamgit.ahh.PvZ.model.Board;
-import ir.hamgit.ahh.PvZ.model.Plant;
+import ir.hamgit.ahh.PvZ.model.entities.Plant;
 
 /**
  * Handler for the Beghouled minigame: unlike every other minigame, waves

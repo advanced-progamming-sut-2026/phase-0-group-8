@@ -1,7 +1,6 @@
 package ir.hamgit.ahh.PvZ.model.minigame;
 
 
-import ir.hamgit.ahh.PvZ.controller.CommandParser;
 import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.enums.ChapterType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
@@ -11,14 +10,10 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
-public class WallnutBowlingGame {
+public class WallnutBowlingGame implements MinigameSession {
 
-    private static final Pattern COORD_PATTERN = Pattern.compile("(-?\\d+)\\s*,\\s*(-?\\d+)");
     private static final int DELIVERY_INTERVAL_TICKS = 100;
     private static final int MAX_QUEUE_SIZE = 3;
 
@@ -51,7 +46,7 @@ public class WallnutBowlingGame {
         double[] weights = {0.6, 0.25, 0.15};
         double roll = Math.random();
         BowlingBall.Kind kind = roll < weights[0] ? BowlingBall.Kind.BOWLING
-                : roll < weights[0] + weights[1] ? BowlingBall.Kind.EXPLODE_O_NUT : BowlingBall.Kind.GIANT;
+            : roll < weights[0] + weights[1] ? BowlingBall.Kind.EXPLODE_O_NUT : BowlingBall.Kind.GIANT;
         queue.addLast(kind);
         System.out.println("Conveyor belt delivered a " + kind + " ball.");
     }
@@ -95,27 +90,6 @@ public class WallnutBowlingGame {
 
     public boolean isWon() {
         return won && !board.isGameOver();
-    }
-
-    public void handle(String raw) {
-        String trimmed = raw.trim();
-        if (trimmed.startsWith("plant ball")) {
-            handlePlantBall(trimmed);
-        } else if (trimmed.startsWith("advance time")) {
-            Map<String, String> flags = CommandParser.parse(trimmed);
-            tick(CommandParser.getIntFlag(flags, "-t", 1));
-        } else if (trimmed.startsWith("show map")) {
-            board.showMap();
-        } else {
-            System.out.println("Unknown Wallnut Bowling command: " + raw);
-        }
-    }
-
-    private void handlePlantBall(String raw) {
-        Matcher m = COORD_PATTERN.matcher(raw);
-        if (m.find()) {
-            plantBall(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)));
-        }
     }
 
     public Board getBoard() {

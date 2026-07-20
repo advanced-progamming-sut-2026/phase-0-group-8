@@ -2,7 +2,7 @@ package ir.hamgit.ahh.PvZ.model.special;
 
 
 import ir.hamgit.ahh.PvZ.model.Board;
-import ir.hamgit.ahh.PvZ.model.Plant;
+import ir.hamgit.ahh.PvZ.model.entities.Plant;
 
 /** "از دست نده" - losing more than a threshold number of plants loses the level. */
 public class LoveYourPlantsLevel extends SpecialLevelHandler {
