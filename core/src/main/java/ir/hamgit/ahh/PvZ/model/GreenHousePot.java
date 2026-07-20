@@ -2,109 +2,84 @@ package ir.hamgit.ahh.PvZ.model;
 
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 
-public class GreenHousePot implements java.io.Serializable {
+import java.io.Serializable;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.random.RandomGenerator;
+
+public final class GreenHousePot implements Serializable {
     private static final long serialVersionUID = 1L;
-    private final int x;
-    private final int y;
     private boolean isLocked;
     private PlantType plantType;
     private long plantedAt;
     private boolean isMarigold;
     private double growthHours;
 
-    public GreenHousePot(int x, int y, boolean isLocked) {
-        this.x = x;
-        this.y = y;
+    public GreenHousePot(boolean isLocked) {
         this.isLocked = isLocked;
-        this.plantType = null;
-        this.plantedAt = 0;
-        this.isMarigold = false;
-        this.growthHours = 0;
     }
 
-    public void plantRandom(java.util.List<PlantType> unlockedPlants) {
-        this.isMarigold = Math.random() < 0.5 || unlockedPlants.isEmpty();
+    public boolean plantRandom(List<PlantType> unlockedPlants) {
+        return plantRandom(unlockedPlants, ThreadLocalRandom.current());
+    }
+
+    boolean plantRandom(List<PlantType> unlockedPlants, RandomGenerator random) {
+        if (isLocked || !isEmpty() || unlockedPlants == null) {
+            return false;
+        }
+        isMarigold = random.nextDouble() < 0.5 || unlockedPlants.isEmpty();
         if (isMarigold) {
-            this.plantType = PlantType.MARIGOLD;
-            this.growthHours = 2;
+            plantType = PlantType.MARIGOLD;
+            growthHours = 2;
         } else {
-            this.plantType = unlockedPlants.get((int) (Math.random() * unlockedPlants.size()));
-            this.growthHours = 8;
+            plantType = unlockedPlants.get(random.nextInt(unlockedPlants.size()));
+            growthHours = 8;
         }
-        this.plantedAt = System.currentTimeMillis();
-    }
-
-    public void restore(PlantType restoredType, long restoredPlantedAt,
-                        boolean restoredMarigold, double restoredGrowthHours) {
-        plantType = restoredType;
-        plantedAt = restoredPlantedAt;
-        isMarigold = restoredMarigold;
-        growthHours = restoredGrowthHours;
-    }
-
-    public boolean isReadyToCollect() {
-        if (plantType == null) {
-            return false;
-        }
-        return hoursElapsed() >= growthHours;
-    }
-
-    public double hoursElapsed() {
-        return (System.currentTimeMillis() - plantedAt) / 3600000.0;
-    }
-
-    public double hoursRemaining() {
-        double remaining = growthHours - hoursElapsed();
-        return Math.max(0, remaining);
-    }
-
-    public int collect(User user) {
-        if (!isReadyToCollect()) {
-            return -1;
-        }
-        int reward;
-        if (isMarigold) {
-            user.addCoins(500);
-            reward = 500;
-        } else {
-            user.setPlantBoost(plantType, true);
-            reward = 0;
-        }
-        plantType = null;
-        isMarigold = false;
-        return reward;
-    }
-
-    public boolean speedGrow(User user) {
-        if (isReadyToCollect() || plantType == null) {
-            return false;
-        }
-        int cost = (int) Math.ceil(hoursRemaining());
-        if (!user.spendDiamonds(cost)) {
-            return false;
-        }
-        plantedAt = System.currentTimeMillis() - (long) (growthHours * 3600000L);
+        plantedAt = System.currentTimeMillis();
         return true;
     }
 
+    public Harvest harvest() {
+        if (!isReadyToCollect()) {
+            return null;
+        }
+        Harvest result = new Harvest(plantType, isMarigold);
+        plantType = null;
+        plantedAt = 0;
+        isMarigold = false;
+        growthHours = 0;
+        return result;
+    }
+
+    public int getAccelerationCost() {
+        if (isEmpty() || isReadyToCollect()) {
+            return 0;
+        }
+        return (int) Math.ceil(hoursRemaining());
+    }
+
+    public boolean finishGrowth() {
+        if (isEmpty() || isReadyToCollect()) {
+            return false;
+        }
+        plantedAt = System.currentTimeMillis() - (long) (growthHours * 3_600_000L);
+        return true;
+    }
+
+    public boolean isReadyToCollect() {
+        return !isEmpty() && hoursElapsed() >= growthHours;
+    }
+
+    private double hoursElapsed() {
+        return Math.max(0, (System.currentTimeMillis() - plantedAt) / 3_600_000.0);
+    }
+
+    public double hoursRemaining() {
+        return isEmpty() ? 0 : Math.max(0, growthHours - hoursElapsed());
+    }
+
     public void unlock() {
-        this.isLocked = false;
-    }
-
-    public long getPlantedAt() {
-        return plantedAt;
-    }
-
-    public double getGrowthHours() {
-        return growthHours;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
+        isLocked = false;
     }
 
     public boolean isLocked() {
@@ -115,11 +90,11 @@ public class GreenHousePot implements java.io.Serializable {
         return plantType;
     }
 
-    public boolean isMarigold() {
-        return isMarigold;
-    }
-
     public boolean isEmpty() {
         return plantType == null;
+    }
+
+    /** Result of harvesting; the service applies its reward to the user. */
+    public record Harvest(PlantType plantType, boolean marigold) {
     }
 }
