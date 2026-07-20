@@ -1,7 +1,8 @@
-package ir.hamgit.ahh.PvZ.model.def;
+package ir.hamgit.ahh.PvZ.model.registry;
 
 
 
+import ir.hamgit.ahh.PvZ.model.def.PlantDef;
 import ir.hamgit.ahh.PvZ.model.enums.BehaviorType;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.enums.Tag;

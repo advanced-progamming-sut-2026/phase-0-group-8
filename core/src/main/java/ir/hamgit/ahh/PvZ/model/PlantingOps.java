@@ -2,7 +2,7 @@ package ir.hamgit.ahh.PvZ.model;
 
 
 import ir.hamgit.ahh.PvZ.model.def.PlantDef;
-import ir.hamgit.ahh.PvZ.model.def.PlantRegistry;
+import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
 import ir.hamgit.ahh.PvZ.model.entities.Plant;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.enums.TileType;

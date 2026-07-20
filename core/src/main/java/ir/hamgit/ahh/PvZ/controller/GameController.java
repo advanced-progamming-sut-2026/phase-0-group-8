@@ -4,7 +4,7 @@ package ir.hamgit.ahh.PvZ.controller;
 import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.User;
 import ir.hamgit.ahh.PvZ.model.def.PlantDef;
-import ir.hamgit.ahh.PvZ.model.def.PlantRegistry;
+import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
 import ir.hamgit.ahh.PvZ.model.enums.*;
 import ir.hamgit.ahh.PvZ.model.special.*;
 

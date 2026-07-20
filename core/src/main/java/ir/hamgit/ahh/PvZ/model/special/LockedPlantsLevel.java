@@ -2,10 +2,9 @@ package ir.hamgit.ahh.PvZ.model.special;
 
 
 import ir.hamgit.ahh.PvZ.model.def.PlantDef;
-import ir.hamgit.ahh.PvZ.model.def.PlantRegistry;
+import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.enums.Tag;
-import ir.hamgit.ahh.PvZ.model.special.SpecialLevelHandler;
 
 import java.util.ArrayList;
 import java.util.Collections;

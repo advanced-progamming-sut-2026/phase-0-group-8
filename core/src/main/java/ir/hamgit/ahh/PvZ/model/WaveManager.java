@@ -2,7 +2,7 @@ package ir.hamgit.ahh.PvZ.model;
 
 
 import ir.hamgit.ahh.PvZ.model.def.ZombieDef;
-import ir.hamgit.ahh.PvZ.model.def.ZombieRegistry;
+import ir.hamgit.ahh.PvZ.model.registry.ZombieRegistry;
 import ir.hamgit.ahh.PvZ.model.entities.Zombie;
 import ir.hamgit.ahh.PvZ.model.enums.ChapterType;
 

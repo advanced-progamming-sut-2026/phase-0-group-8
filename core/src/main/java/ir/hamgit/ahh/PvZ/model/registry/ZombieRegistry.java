@@ -1,6 +1,7 @@
-package ir.hamgit.ahh.PvZ.model.def;
+package ir.hamgit.ahh.PvZ.model.registry;
 
 
+import ir.hamgit.ahh.PvZ.model.def.ZombieDef;
 import ir.hamgit.ahh.PvZ.model.enums.ArmorType;
 import ir.hamgit.ahh.PvZ.model.enums.BehaviorType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;

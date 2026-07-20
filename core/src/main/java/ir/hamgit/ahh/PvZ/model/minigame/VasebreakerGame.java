@@ -1,10 +1,9 @@
 package ir.hamgit.ahh.PvZ.model.minigame;
 
 
-import ir.hamgit.ahh.PvZ.controller.CommandParser;
 import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.def.PlantDef;
-import ir.hamgit.ahh.PvZ.model.def.PlantRegistry;
+import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
 import ir.hamgit.ahh.PvZ.model.enums.ChapterType;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
@@ -12,16 +11,12 @@ import ir.hamgit.ahh.PvZ.model.special.MinigameLevelHandler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
-public class VasebreakerGame {
+public class VasebreakerGame implements MinigameSession {
 
     private enum VaseKind { EMPTY, ZOMBIE, SEED_PACKET }
 
-    private static final Pattern COORD_PATTERN = Pattern.compile("(-?\\d+)\\s*,\\s*(-?\\d+)");
     private static final int SEED_EXPIRY_TICKS = 100;
     private static final double ZOMBIE_CHANCE = 0.28;
     private static final double SEED_CHANCE = 0.22;
@@ -54,7 +49,7 @@ public class VasebreakerGame {
             for (int c = 0; c < board.getColumns(); c++) {
                 double roll = Math.random();
                 kind[r][c] = roll < ZOMBIE_CHANCE ? VaseKind.ZOMBIE
-                        : roll < ZOMBIE_CHANCE + SEED_CHANCE ? VaseKind.SEED_PACKET : VaseKind.EMPTY;
+                    : roll < ZOMBIE_CHANCE + SEED_CHANCE ? VaseKind.SEED_PACKET : VaseKind.EMPTY;
             }
         }
     }
@@ -72,25 +67,11 @@ public class VasebreakerGame {
         }
     }
 
-    public void handle(String raw) {
-        String trimmed = raw.trim();
-        if (trimmed.startsWith("break vase")) {
-            handleBreakVase(trimmed);
-        } else if (trimmed.startsWith("collect seed packet")) {
-            handleCollectSeed(trimmed);
-        } else if (trimmed.startsWith("plant plant")) {
-            handlePlant(trimmed);
-        } else if (trimmed.startsWith("advance time")) {
-            Map<String, String> flags = CommandParser.parse(trimmed);
-            tick(CommandParser.getIntFlag(flags, "-t", 1));
-        } else if (trimmed.startsWith("show map")) {
-            board.showMap();
-        } else {
-            System.out.println("Unknown Vasebreaker command: " + raw);
-        }
-    }
-
     public void breakVase(int x, int lane) {
+        if (!inBounds(x, lane)) {
+            System.out.println("That vase position is outside the board.");
+            return;
+        }
         if (broken[lane][x]) {
             return;
         }
@@ -110,13 +91,17 @@ public class VasebreakerGame {
 
     private void dropSeedPacket(int x, int lane) {
         List<PlantType> options = new ArrayList<>(PlantRegistry.getAll().stream()
-                .map(PlantDef::getType).toList());
+            .map(PlantDef::getType).toList());
         seedType[lane][x] = options.get((int) (Math.random() * options.size()));
         seedTicksRemaining[lane][x] = SEED_EXPIRY_TICKS;
         System.out.printf("A seed packet for %s appeared at (%d, %d)!%n", seedType[lane][x], x, lane);
     }
 
     public void collectSeedPacket(int x, int lane) {
+        if (!inBounds(x, lane)) {
+            System.out.println("That seed position is outside the board.");
+            return;
+        }
         if (seedType[lane][x] == null) {
             System.out.println("No seed packet there.");
             return;
@@ -165,7 +150,11 @@ public class VasebreakerGame {
                 }
             }
         }
-        won = true;
+        won = board.getZombies().stream().noneMatch(zombie -> zombie.isAlive());
+    }
+
+    private boolean inBounds(int x, int lane) {
+        return x >= 0 && x < board.getColumns() && lane >= 0 && lane < board.getRows();
     }
 
     public boolean isOver() {
@@ -174,50 +163,6 @@ public class VasebreakerGame {
 
     public boolean isWon() {
         return won && !board.isGameOver();
-    }
-
-    private void handleBreakVase(String raw) {
-        int[] coords = parseCoordinates(raw);
-        if (coords != null) {
-            breakVase(coords[0], coords[1]);
-        }
-    }
-
-    private void handleCollectSeed(String raw) {
-        int[] coords = parseCoordinates(raw);
-        if (coords != null) {
-            collectSeedPacket(coords[0], coords[1]);
-        }
-    }
-
-    private void handlePlant(String raw) {
-        Map<String, String> flags = CommandParser.parse(raw);
-        int[] coords = parseCoordinates(flags.get("-l"));
-        PlantType type = parsePlantType(flags.get("-t"));
-        if (coords == null || type == null) {
-            return;
-        }
-        plantHeldSeed(type, coords[0], coords[1]);
-    }
-
-    private PlantType parsePlantType(String raw) {
-        if (raw == null) {
-            return null;
-        }
-        try {
-            return PlantType.valueOf(raw.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            System.out.println("Unknown plant type: " + raw);
-            return null;
-        }
-    }
-
-    private int[] parseCoordinates(String raw) {
-        if (raw == null) {
-            return null;
-        }
-        Matcher m = COORD_PATTERN.matcher(raw);
-        return m.find() ? new int[] {Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2))} : null;
     }
 
     public Board getBoard() {
