@@ -75,7 +75,7 @@ public class Tile {
         }
         return layers;
     }
-    
+
     public boolean isPlantable() {
         return type == TileType.NORMAL || type == TileType.NECROMANCY;
     }

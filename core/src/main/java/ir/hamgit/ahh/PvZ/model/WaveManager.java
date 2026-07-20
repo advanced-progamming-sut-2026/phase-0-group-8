@@ -1,23 +1,18 @@
 package ir.hamgit.ahh.PvZ.model;
+import ir.hamgit.ahh.PvZ.model.quest.LevelQuestTelemetry;
+import ir.hamgit.ahh.PvZ.model.entities.Zombie;
 
 
 import ir.hamgit.ahh.PvZ.model.def.ZombieDef;
 import ir.hamgit.ahh.PvZ.model.registry.ZombieRegistry;
-import ir.hamgit.ahh.PvZ.model.entities.Zombie;
 import ir.hamgit.ahh.PvZ.model.enums.ChapterType;
 
 import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Random;
 
-/**
- * Owns wave timing and composition for a level: per-wave zombie budgets
- * (each wave 25% harder than the last, final "flag" wave doubled per spec),
- * random wave composition, and the 75%-cleared trigger for the next wave.
- * Split out of {@link Board} to keep Board under the project's class-length
- * Checkstyle/PMD guideline - every method that needs board state (rows/
- * columns, zombies, the special-level handler) reaches it through Board's
- * own public API, exactly like {@link ZombieAbilitySupport}.
- */
+
 public class WaveManager {
 
     private static final double WAVE_GROWTH = 1.25;
@@ -30,11 +25,12 @@ public class WaveManager {
     private final int baseWaveCost;
     private final int totalWaves;
     private final boolean[] waveStarted;
+    private final Random random;
     private int currentWave;
     private int currentWaveTotalHp;
 
     public WaveManager(ChapterType chapter, int difficulty, int totalWaves) {
-        this(chapter, difficulty, 100, totalWaves);
+        this(chapter, difficulty, 250, totalWaves);
     }
 
     public WaveManager(ChapterType chapter, int difficulty, int baseWaveCost, int totalWaves) {
@@ -43,6 +39,8 @@ public class WaveManager {
         this.baseWaveCost = baseWaveCost;
         this.totalWaves = Math.max(1, totalWaves);
         this.waveStarted = new boolean[this.totalWaves];
+        long dailySeed = LocalDate.now().toEpochDay() * 31L + chapter.ordinal() * 17L + totalWaves;
+        this.random = new Random(dailySeed);
     }
 
     /**
@@ -54,8 +52,8 @@ public class WaveManager {
         if (waveNumber == totalWavesInLevel) {
             cost *= FINAL_WAVE_MULTIPLIER;
         }
-        double difficultyMultiplier = 3.0 / Math.max(1, difficulty);
-        return (int) Math.round(cost * difficultyMultiplier);
+        int unit = difficultyCostUnit() * 5;
+        return Math.max(unit, (int) Math.round(cost / unit) * unit);
     }
 
     public List<ZombieDef> buildWave(int waveCost) {
@@ -64,21 +62,48 @@ public class WaveManager {
         int remaining = waveCost;
         int guard = 0;
         while (remaining > 0 && !pool.isEmpty() && guard < BUILD_WAVE_GUARD) {
-            ZombieDef pick = pool.get((int) (Math.random() * pool.size()));
+            int availableBudget = remaining;
+            List<ZombieDef> affordable = pool.stream()
+                .filter(def -> effectiveCost(def) <= availableBudget)
+                .filter(def -> canFillBudget(availableBudget - effectiveCost(def), pool)).toList();
+            if (affordable.isEmpty()) {
+                break;
+            }
+            ZombieDef pick = affordable.get(random.nextInt(affordable.size()));
             wave.add(pick);
-            remaining -= Math.max(1, pick.getWaveCost());
+            remaining -= effectiveCost(pick);
             guard++;
         }
         return wave;
+    }
+
+    private int effectiveCost(ZombieDef def) {
+        return Math.max(1, def.getWaveCost() / 10) * difficultyCostUnit();
+    }
+
+    private boolean canFillBudget(int budget, List<ZombieDef> pool) {
+        boolean[] reachable = new boolean[budget + 1];
+        reachable[0] = true;
+        for (int value = 1; value <= budget; value++) {
+            for (ZombieDef def : pool) {
+                int cost = effectiveCost(def);
+                if (value >= cost && reachable[value - cost]) {
+                    reachable[value] = true;
+                    break;
+                }
+            }
+        }
+        return reachable[budget];
+    }
+
+    private int difficultyCostUnit() {
+        return Math.max(1, (int) Math.round(30.0 / Math.max(1, difficulty)));
     }
 
     private List<ZombieDef> getZombiesForChapter() {
         return ZombieRegistry.getForChapter(chapter.name());
     }
 
-    // ------------------------------------------------------------------
-    // Wave timing (moved from Board)
-    // ------------------------------------------------------------------
 
     void checkAdvance(Board board) {
         boolean skip = board.isGameOver() || currentWave >= totalWaves
@@ -109,14 +134,17 @@ public class WaveManager {
         List<ZombieDef> wave = buildWave(cost);
         currentWaveTotalHp = 0;
         spawnWaveZombies(board, wave, waveIndex);
+        board.onWaveStart(waveIndex + 1);
+        LevelQuestTelemetry.recordWaveStart(board, waveIndex + 1);
         board.getSpecialLevelHandler().onWaveStart(board, waveIndex + 1);
     }
 
     private void spawnWaveZombies(Board board, List<ZombieDef> wave, int waveIndex) {
         for (ZombieDef def : wave) {
-            int lane = (int) (Math.random() * board.getRows());
-            board.spawnZombieAt(def.getType(), lane, board.getColumns());
-            currentWaveTotalHp += def.getMaxHp();
+            int lane = random.nextInt(board.getRows());
+            boolean finalWave = waveIndex == totalWaves - 1;
+            board.spawnZombieAt(def.getType(), lane, board.getZombieSpawnColumn(finalWave));
+            currentWaveTotalHp += (int) Math.round(def.getMaxHp() * board.getDifficultySpeedMultiplier());
             System.out.printf("Zombie %s spawned at wave %d in lane %d which costed %d.%n",
                 def.getType(), waveIndex + 1, lane, def.getWaveCost());
         }
