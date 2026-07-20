@@ -1,10 +1,9 @@
 package ir.hamgit.ahh.PvZ.model;
-
-
-import ir.hamgit.ahh.PvZ.model.def.ZombieDef;
-import ir.hamgit.ahh.PvZ.model.registry.ZombieRegistry;
+import ir.hamgit.ahh.PvZ.model.quest.LevelQuestTelemetry;
 import ir.hamgit.ahh.PvZ.model.entities.Plant;
 import ir.hamgit.ahh.PvZ.model.entities.Zombie;
+import ir.hamgit.ahh.PvZ.model.def.ZombieDef;
+import ir.hamgit.ahh.PvZ.model.registry.ZombieRegistry;
 import ir.hamgit.ahh.PvZ.model.enums.ChapterType;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.enums.SpecialLevelType;
@@ -13,11 +12,9 @@ import ir.hamgit.ahh.PvZ.model.special.NormalLevelHandler;
 import ir.hamgit.ahh.PvZ.model.special.PlantWhatYouGetLevel;
 import ir.hamgit.ahh.PvZ.model.special.SpecialLevelHandler;
 import ir.hamgit.ahh.PvZ.model.special.TimedWarLevel;
-
-
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Set;
 public class Board {
 
     public static final int ROWS = 5;
@@ -34,18 +31,19 @@ public class Board {
     private int tickCount;
     private final ChapterType chapter;
     private final int difficulty;
-    private boolean isGameOver;
-    private boolean playerWon;
     private final SpecialLevelType specialLevelType;
     private final SpecialLevelHandler specialLevelHandler;
     private final WaveManager waveManager;
     private final ZombieAbilitySupport zombieAbilities = new ZombieAbilitySupport();
     private final BoardCombatOps combatOps = new BoardCombatOps();
     private final PlantingOps plantingOps = new PlantingOps();
+    private final ChapterMechanics chapterMechanics;
+    private final BoardLevelOps levelOps = new BoardLevelOps();
 
     public Board(ChapterType chapter, int totalWaves, int difficulty, SpecialLevelType specialLevelType,
                  SpecialLevelHandler specialLevelHandler) {
         this.chapter = chapter;
+        this.chapterMechanics = new ChapterMechanics(chapter);
         this.difficulty = difficulty;
         this.specialLevelType = specialLevelType;
         this.specialLevelHandler = specialLevelHandler != null ? specialLevelHandler : new NormalLevelHandler();
@@ -57,12 +55,10 @@ public class Board {
         this.specialLevelHandler.onLevelStart(this);
     }
 
-    // ------------------------------------------------------------------
     // Time advancement - "advance time -t <count> ticks"
-    // ------------------------------------------------------------------
 
     public void advanceTime(int ticks) {
-        for (int i = 0; i < ticks && !isGameOver; i++) {
+        for (int i = 0; i < ticks && !levelOps.isGameOver(); i++) {
             advanceOneTick();
         }
     }
@@ -75,6 +71,7 @@ public class Board {
         tickPlants();
         tickProjectiles();
         tickSuns();
+        chapterMechanics.tick(this);
         checkWaveAdvance();
         checkWinLoss();
     }
@@ -93,7 +90,9 @@ public class Board {
         for (Tile[] row : tiles) {
             for (Tile tile : row) {
                 if (!tile.isEmpty()) {
-                    tile.getPlant().tick(this);
+                    for (Plant plant : tile.getPlantLayers()) {
+                        plant.tick(this);
+                    }
                 }
             }
         }
@@ -110,9 +109,7 @@ public class Board {
         sunEconomy.tickSuns();
     }
 
-    // ------------------------------------------------------------------
     // Sun economy
-    // ------------------------------------------------------------------
 
     private void tickSunDrop() {
         sunEconomy.tickDrop(this);
@@ -149,12 +146,17 @@ public class Board {
         sunEconomy.explodeRadioactiveSun(this, x, lane);
     }
 
-    // ------------------------------------------------------------------
     // Planting / plucking / plant food (see PlantingOps)
-    // ------------------------------------------------------------------
-
     public boolean plantPlant(PlantType type, int x, int lane) {
         return plantingOps.plantPlant(this, type, x, lane);
+    }
+
+    public boolean plantPlant(PlantType type, int x, int lane, int adjustedCost) {
+        return plantingOps.plantPlant(this, type, x, lane, adjustedCost, 1);
+    }
+
+    public boolean plantPlant(PlantType type, int x, int lane, int adjustedCost, int level) {
+        return plantingOps.plantPlant(this, type, x, lane, adjustedCost, level);
     }
 
     /** Places a plant ignoring sun cost - used for level setup (e.g. Save Our Seeds pre-placed plants). */
@@ -182,7 +184,7 @@ public class Board {
         sunEconomy.addSun(-cost);
     }
 
-    void incrementPlantFoodCount() {
+    public void incrementPlantFoodCount() {
         plantFoodCount = Math.min(3, plantFoodCount + 1);
     }
 
@@ -194,9 +196,7 @@ public class Board {
         return true;
     }
 
-    // ------------------------------------------------------------------
     // Combat helpers used by Plant/Zombie/Projectile (see BoardCombatOps)
-    // ------------------------------------------------------------------
 
     public boolean hasZombieInLaneAhead(int plantX, int lane, int range) {
         return combatOps.hasZombieInLaneAhead(this, plantX, lane, range);
@@ -238,9 +238,7 @@ public class Board {
         combatOps.markDeathHandledIfNeeded(this, zombie);
     }
 
-    // ------------------------------------------------------------------
     // Zombie-specific ability hooks (called from Zombie's per-type methods)
-    // ------------------------------------------------------------------
 
     public boolean hasPlantWithinTiles(int lane, double x, int range) {
         return zombieAbilities.hasPlantWithinTiles(this, lane, x, range);
@@ -295,34 +293,22 @@ public class Board {
         zombieAbilities.spawnRandomGraves(this, count);
     }
 
-    // ------------------------------------------------------------------
-    // Lawn mower / zombie spawning / waves
-    // ------------------------------------------------------------------
+    public void damageNearestPlantLeft(int lane, double zombieX, int damage) {
+        zombieAbilities.damageNearestPlantLeft(this, lane, zombieX, damage);
+    }
 
+    public void destroyPlantsInLane(int lane) {
+        zombieAbilities.destroyPlantsInLane(this, lane);
+    }
+
+    // Lawn mower / zombie spawning / waves
     public void triggerLawnMower(int lane, Zombie triggeringZombie) {
-        if (!lawnMowers[lane]) {
-            loseGame("The zombie ate your brain; LOSER!!!");
-            return;
-        }
-        lawnMowers[lane] = false;
-        List<String> killed = new ArrayList<>();
-        for (Zombie z : zombies) {
-            if (z.getLane() == lane && z.isAlive() && z.getDef().getType() != ZombieType.GARGANTUAR) {
-                killed.add(z.getDef().getType().toString());
-                z.forceKill();
-            }
-        }
-        System.out.println("The lawn mower in the row " + lane + " is triggered and killed these zombies:");
-        killed.forEach(System.out::println);
+        levelOps.triggerMower(this, lane, triggeringZombie);
     }
 
     public void spawnZombieAt(ZombieType type, int lane, int x) {
         ZombieDef def = ZombieRegistry.get(type);
-        if (def != null) {
-            Zombie z = new Zombie(def, lane, x);
-            z.setWaveNumber(waveManager.getCurrentWave());
-            zombies.add(z);
-        }
+        levelOps.spawn(this, def, lane, x, waveManager.getCurrentWave(), difficulty / 3.0);
     }
 
     public void cheatSpawnZombie(ZombieType type, int x, int lane) {
@@ -331,11 +317,6 @@ public class Board {
 
     public void cheatAddSuns(int n) {
         addSun(n);
-    }
-
-    public void cheatRemoveCooldownNoop() {
-        // Replant cooldowns are tracked in GameController.plantCooldowns (see reference),
-        // so the actual "cheat remove-cooldown" command is handled there.
     }
 
     public void cheatReleaseNuke() {
@@ -356,49 +337,19 @@ public class Board {
     }
 
     private void checkWinLoss() {
-        if (isGameOver) {
-            return;
-        }
-        if (specialLevelHandler.checkCustomLoss(this)) {
-            loseGame("Level failed.");
-            return;
-        }
-        if (specialLevelHandler.checkCustomWin(this)) {
-            winGame();
-            return;
-        }
-        boolean allWavesCleared = waveManager.getCurrentWave() >= waveManager.getTotalWaves()
-            && waveManager.hasFinalWaveStarted() && noZombiesRemain();
-        if (allWavesCleared) {
-            winGame();
-        }
+        levelOps.checkTerminalState(this, waveManager.getCurrentWave(), waveManager.getTotalWaves(),
+            waveManager.hasFinalWaveStarted());
     }
 
-    private boolean noZombiesRemain() {
-        return zombies.stream().noneMatch(Zombie::isAlive);
-    }
-
-    private void winGame() {
-        isGameOver = true;
-        playerWon = true;
-        System.out.println("Dear humanz, zis is not done yet; we will come back to eat your brainz, humanz.");
-    }
-
-    private void loseGame(String message) {
-        isGameOver = true;
-        playerWon = false;
-        System.out.println(message);
-    }
-
-    // ------------------------------------------------------------------
     // Currency drops (see CurrencyLedger)
-    // ------------------------------------------------------------------
 
     public void maybeDropCurrency() {
         currencyLedger.maybeDropCurrency();
     }
 
     public void onZombieKilled(Zombie zombie) {
+        levelOps.recordKill();
+        LevelQuestTelemetry.recordKill(this, zombie);
         specialLevelHandler.onZombieKilled(this, zombie);
     }
 
@@ -410,34 +361,31 @@ public class Board {
         return currencyLedger.drainDiamondsEarned();
     }
 
-    // ------------------------------------------------------------------
-    // Printing (delegated to BoardPrinter)
-    // ------------------------------------------------------------------
-
-    public void showMap() {
-        BoardPrinter.showMap(this);
+    int getZombieSpawnColumn(boolean finalWave) {
+        int column = chapterMechanics.zombieSpawnColumn(this, finalWave);
+        if (specialLevelHandler instanceof ir.hamgit.ahh.PvZ.model.special.DeadLineLevel deadLine) {
+            return Math.max(column, deadLine.getLineColumn() + 1);
+        }
+        return column;
     }
 
-    public void showPlantsStatus() {
-        BoardPrinter.showPlantsStatus(this);
+    void onWaveStart(int waveNumber) {
+        chapterMechanics.onWaveStart(this, waveNumber);
     }
 
-    public void showTileStatus(int x, int lane) {
-        BoardPrinter.showTileStatus(this, x, lane);
+    boolean chapterBlocksNaturalSun() {
+        return chapterMechanics.blocksNaturalSun();
     }
 
-    public void showSunAmount() {
-        BoardPrinter.showSunAmount(this);
+    void onGraveDestroyed(Tile tile) {
+        chapterMechanics.onGraveDestroyed(this, tile);
     }
 
-    public void showZombiesInfo() {
-        BoardPrinter.showZombiesInfo(this);
+    public int drainPotsEarned() {
+        return currencyLedger.drainPotsEarned();
     }
 
-    // ------------------------------------------------------------------
     // Accessors
-    // ------------------------------------------------------------------
-
     boolean isInBounds(int x, int lane) {
         return x >= 0 && x < COLUMNS && lane >= 0 && lane < ROWS;
     }
@@ -479,11 +427,11 @@ public class Board {
     }
 
     public boolean isGameOver() {
-        return isGameOver;
+        return levelOps.isGameOver();
     }
 
     public boolean isPlayerWon() {
-        return playerWon;
+        return levelOps.isPlayerWon();
     }
 
     public List<Zombie> getZombies() {
@@ -492,6 +440,26 @@ public class Board {
 
     public List<Projectile> getProjectiles() {
         return projectiles;
+    }
+
+    public Set<ZombieType> getEncounteredZombies() {
+        return levelOps.getEncountered();
+    }
+
+    public void enableBrainMode() {
+        levelOps.enableBrainMode();
+    }
+
+    public int getZombiesKilled() {
+        return levelOps.getZombiesKilled();
+    }
+
+    public int getPlantsRemaining() {
+        return levelOps.plantsRemaining(this);
+    }
+
+    public int getMowersRemaining() {
+        return levelOps.mowersRemaining(lawnMowers);
     }
 
     public boolean[] getLawnMowerAvailability() {
