@@ -1,24 +1,31 @@
 package ir.hamgit.ahh.PvZ.model;
-
 import ir.hamgit.ahh.PvZ.model.entities.Plant;
+
 import ir.hamgit.ahh.PvZ.model.enums.TileType;
 
-/**
- * A single cell of the board grid. Holds terrain type plus whatever state
- * (grave HP, slip direction, necromancy flag) that terrain needs.
- */
+import java.util.ArrayList;
+import java.util.List;
+
+
 public class Tile {
 
     public static final int GRAVE_MAX_HP = 700;
+    public static final int ICE_MAX_HP = 600;
+    public static final int GRAVE_REWARD_NONE = 0;
+    public static final int GRAVE_REWARD_SUN = 1;
+    public static final int GRAVE_REWARD_PLANT_FOOD = 2;
 
     private TileType type;
     private Plant plant;
     private int gravestoneHp;
+    private int iceHp;
     private boolean hasNecromancy;
+    private int graveReward;
 
     public Tile(TileType type) {
         this.type = type;
         this.gravestoneHp = type == TileType.GRAVE ? GRAVE_MAX_HP : 0;
+        this.iceHp = type == TileType.ICY_GROUND ? ICE_MAX_HP : 0;
     }
 
     public boolean plantHere(Plant newPlant) {
@@ -35,6 +42,22 @@ public class Tile {
         return removed;
     }
 
+    public boolean removePlant(Plant target) {
+        if (plant == target) {
+            removePlant();
+            return true;
+        }
+        Plant current = plant;
+        while (current != null && current.getUnderPlant() != target) {
+            current = current.getUnderPlant();
+        }
+        if (current == null) {
+            return false;
+        }
+        current.setUnderPlant(target.getUnderPlant());
+        return true;
+    }
+
     public Plant getPlant() {
         return plant;
     }
@@ -43,9 +66,18 @@ public class Tile {
         return plant == null;
     }
 
-    /** Graves, water and slippery ground cannot be planted on directly. */
+    public List<Plant> getPlantLayers() {
+        List<Plant> layers = new ArrayList<>();
+        Plant current = plant;
+        while (current != null) {
+            layers.add(current);
+            current = current.getUnderPlant();
+        }
+        return layers;
+    }
+    
     public boolean isPlantable() {
-        return type == TileType.NORMAL || type == TileType.ICY_GROUND || type == TileType.NECROMANCY;
+        return type == TileType.NORMAL || type == TileType.NECROMANCY;
     }
 
     public void hitGrave(int damage) {
@@ -62,11 +94,37 @@ public class Tile {
         return gravestoneHp;
     }
 
+    public void hitIce(int damage) {
+        if (type != TileType.ICY_GROUND) {
+            return;
+        }
+        iceHp = Math.max(0, iceHp - Math.max(0, damage));
+        if (iceHp == 0) {
+            setType(TileType.NORMAL);
+        }
+    }
+
+    public int getIceHp() {
+        return iceHp;
+    }
+
     public void makeGrave() {
         if (type == TileType.NORMAL || type == TileType.NECROMANCY) {
             this.gravestoneHp = GRAVE_MAX_HP;
             this.type = TileType.GRAVE;
         }
+    }
+
+    public void rollDarkAgesReward() {
+        double roll = Math.random();
+        graveReward = roll < 0.2 ? GRAVE_REWARD_SUN
+            : roll < 0.3 ? GRAVE_REWARD_PLANT_FOOD : GRAVE_REWARD_NONE;
+    }
+
+    public int takeGraveReward() {
+        int reward = graveReward;
+        graveReward = GRAVE_REWARD_NONE;
+        return reward;
     }
 
     public boolean hasNecromancy() {
@@ -83,5 +141,7 @@ public class Tile {
 
     public void setType(TileType type) {
         this.type = type;
+        gravestoneHp = type == TileType.GRAVE ? GRAVE_MAX_HP : 0;
+        iceHp = type == TileType.ICY_GROUND ? ICE_MAX_HP : 0;
     }
 }

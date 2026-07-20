@@ -29,8 +29,6 @@ public class Sun {
         this(type, x, lane, producedByPlant, -1);
     }
 
-    /** {@code customValue} overrides the normal sky-sun value table - used for plant-produced suns
-     *  whose amount comes from {@code PlantDef.getSunProductionAmount()} (e.g. Twin Sunflower's 50). */
     public Sun(SunType type, int x, int lane, boolean producedByPlant, int customValue) {
         this.type = type;
         this.x = x;

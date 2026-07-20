@@ -1,19 +1,12 @@
 package ir.hamgit.ahh.PvZ.model;
-
+import ir.hamgit.ahh.PvZ.model.quest.LevelQuestTelemetry;
 import ir.hamgit.ahh.PvZ.model.entities.Plant;
+import ir.hamgit.ahh.PvZ.model.entities.Zombie;
+
 import ir.hamgit.ahh.PvZ.model.enums.SunType;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Owns the sun economy: falling sky suns, plant-produced suns, radioactive
- * mid-air explosions, and the player's running sun total. Split out of
- * {@link Board} purely to keep Board under the project's class-length
- * Checkstyle/PMD guideline (500 lines) - every method here that needs board
- * state (columns/rows, tiles, the special-level handler, zombie damage)
- * reaches it through Board's own public API, exactly like
- * {@link ZombieAbilitySupport} does.
- */
 class SunEconomy {
 
     private static final int NATURAL_SUN_FLOOR_SECONDS = 12;
@@ -34,7 +27,7 @@ class SunEconomy {
     }
 
     void tickDrop(Board board) {
-        if (board.getSpecialLevelHandler().blocksNaturalSun()) {
+        if (board.getSpecialLevelHandler().blocksNaturalSun() || board.chapterBlocksNaturalSun()) {
             return;
         }
         naturalSunTimer--;
@@ -51,13 +44,6 @@ class SunEconomy {
         suns.removeIf(Sun::isCollected);
     }
 
-    /**
-     * Interval (in seconds) between sky suns per spec: {@code x = max(6 + 0.05t, 12)}
-     * where t is seconds elapsed. Transcribed literally from the source PDF's
-     * formula; the Persian-PDF math extraction is not perfectly reliable, so
-     * double check this against the original doc/professor clarification if
-     * playtesting shows sun income feels off.
-     */
     private int computeNextSunIntervalTicks(int tickCount, double difficultyMultiplier) {
         double t = tickCount / (double) Board.TICKS_PER_SECOND;
         double intervalSeconds = Math.max(NATURAL_SUN_BASE_SECONDS + NATURAL_SUN_GROWTH_PER_SECOND * t,
@@ -84,7 +70,7 @@ class SunEconomy {
     }
 
     void spawnProducedSun(Plant source) {
-        int amount = source.getDef().getSunProductionAmount();
+        int amount = source.getSunProductionAmount();
         suns.add(new Sun(SunType.NORMAL, source.getX(), source.getLane(), true, amount));
         System.out.printf("plant %s produced a sun at (%d, %d)%n",
             source.getDef().getType(), source.getX(), source.getLane());
@@ -113,13 +99,16 @@ class SunEconomy {
             sun.explodeIfRadioactive(board);
         } else {
             addSun(sun.getValue());
+            LevelQuestTelemetry.recordSunCollected(board, sun.getValue());
             board.notifySunProduced(sun.getValue());
         }
         sun.markCollected();
         if (sun.isProducedByPlant()) {
             Tile tile = board.getTileAt(sun.getX(), sun.getLane());
             if (tile != null && !tile.isEmpty()) {
-                tile.getPlant().markSunCollected();
+                for (Plant plant : tile.getPlantLayers()) {
+                    plant.markSunCollected();
+                }
             }
         }
         return true;
