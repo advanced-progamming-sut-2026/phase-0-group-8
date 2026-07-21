@@ -1,135 +1,52 @@
 package ir.hamgit.ahh.PvZ.model;
-import ir.hamgit.ahh.PvZ.model.entities.Plant;
 
 
 import ir.hamgit.ahh.PvZ.model.def.PlantDef;
 import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
-import ir.hamgit.ahh.PvZ.model.enums.BehaviorType;
+import ir.hamgit.ahh.PvZ.model.entities.Plant;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.enums.TileType;
 
+/**
+ * Planting rules (tile eligibility, stacking, water/lily-pad handling),
+ * plucking, and the plant-food inventory. Split out of {@link Board} purely
+ * to keep Board under the project's class-length Checkstyle/PMD guideline;
+ * reaches board state through Board's own public API plus a couple of
+ * narrow package-private mutators ({@code Board.spendSun},
+ * {@code Board.incrementPlantFoodCount}, {@code Board.consumePlantFoodIfAvailable})
+ * added specifically so this class doesn't need direct field access.
+ */
 class PlantingOps {
-
-    private PlantType lastPlantType;
 
     boolean plantPlant(Board board, PlantType type, int x, int lane) {
         PlantDef def = PlantRegistry.get(type);
-        return def != null && plantPlant(board, type, x, lane, def.getSunCost(), 1);
-    }
-
-    boolean plantPlant(Board board, PlantType type, int x, int lane, int adjustedCost, int level) {
-        PlantDef requestedDef = PlantRegistry.get(type);
-        PlantDef placedDef = resolveDefinition(type);
-        if (requestedDef == null || placedDef == null || !board.isInBounds(x, lane)
-            || board.getSunAmount() < adjustedCost) {
+        if (def == null || !board.isInBounds(x, lane) || board.getSunAmount() < def.getSunCost()) {
             return false;
         }
-        if (!place(board, placedDef, x, lane, level)) {
+        if (!place(board, def, x, lane)) {
             return false;
         }
-        board.spendSun(adjustedCost);
-        rememberPlant(type, placedDef);
+        board.spendSun(def.getSunCost());
         return true;
     }
 
     boolean plantForFree(Board board, PlantType type, int x, int lane) {
-        PlantDef def = resolveDefinition(type);
-        boolean planted = def != null && board.isInBounds(x, lane) && place(board, def, x, lane, 1);
-        if (planted) {
-            rememberPlant(type, def);
-        }
-        return planted;
+        PlantDef def = PlantRegistry.get(type);
+        return def != null && board.isInBounds(x, lane) && place(board, def, x, lane);
     }
 
-    private PlantDef resolveDefinition(PlantType type) {
-        PlantDef requested = PlantRegistry.get(type);
-        if (requested == null || !requested.hasBehavior(BehaviorType.COPY_PLANT)) {
-            return requested;
-        }
-        return lastPlantType == null ? null : PlantRegistry.get(lastPlantType);
-    }
-
-    private void rememberPlant(PlantType requestedType, PlantDef placedDef) {
-        if (requestedType != PlantType.IMITATER) {
-            lastPlantType = placedDef.getType();
-        }
-    }
-
-    private boolean place(Board board, PlantDef def, int x, int lane, int level) {
+    private boolean place(Board board, PlantDef def, int x, int lane) {
         Tile tile = board.getTileAt(x, lane);
-        if (isTerrainOnly(def)) {
-            return handleTerrainAbility(board, tile, def, x, lane, level);
-        }
         if (tile == null || !canPlaceOn(tile, def)) {
             return false;
-        }
-        if (canAddStackedHead(tile, def)) {
-            return tile.getPlant().addStackedHead();
         }
         return tile.plantHere(new Plant(def, x, lane));
     }
 
-    private boolean isTerrainOnly(PlantDef def) {
-        return def.hasBehavior(BehaviorType.REMOVE_GRAVE)
-            || (def.hasBehavior(BehaviorType.MELT_ICE)
-            && !def.hasBehavior(BehaviorType.LANE_EXPLOSION));
-    }
-
-    private boolean handleTerrainAbility(Board board, Tile tile, PlantDef def,
-                                         int x, int lane, int level) {
-        if (tile == null) {
-            return false;
-        }
-        if (def.hasBehavior(BehaviorType.REMOVE_GRAVE) && tile.getType() == TileType.GRAVE) {
-            tile.setType(TileType.NORMAL);
-            explodeTerrainAbility(board, def, x, lane, level);
-            return true;
-        }
-        if (def.hasBehavior(BehaviorType.MELT_ICE) && isIceTile(tile)) {
-            meltIce(board, x, lane, level >= 3 ? 1 : 0);
-            explodeTerrainAbility(board, def, x, lane, level);
-            return true;
-        }
-        return false;
-    }
-
-    private void meltIce(Board board, int centerX, int centerLane, int radius) {
-        for (int lane = Math.max(0, centerLane - radius);
-             lane <= Math.min(board.getRows() - 1, centerLane + radius); lane++) {
-            for (int x = Math.max(0, centerX - radius);
-                 x <= Math.min(board.getColumns() - 1, centerX + radius); x++) {
-                Tile target = board.getTileAt(x, lane);
-                if (isIceTile(target)) {
-                    target.setType(TileType.NORMAL);
-                }
-                if (target.getPlant() != null) {
-                    target.getPlant().meltIce();
-                }
-            }
-        }
-    }
-
-    private void explodeTerrainAbility(Board board, PlantDef def, int x, int lane, int level) {
-        if (level >= 4) {
-            board.dealAreaDamageToZombies(x, lane, 1, Math.max(600, def.getDamage()));
-        }
-    }
-
-    private boolean isIceTile(Tile tile) {
-        return tile.getType() == TileType.ICY_GROUND || tile.getType() == TileType.SLIPPERY_UP
-            || tile.getType() == TileType.SLIPPERY_DOWN;
-    }
-
-    private boolean canAddStackedHead(Tile tile, PlantDef def) {
-        return !tile.isEmpty() && def.hasBehavior(BehaviorType.STACKABLE_HEADS)
-            && tile.getPlant().getDef().getType() == def.getType();
-    }
-
     private boolean canPlaceOn(Tile tile, PlantDef def) {
         if (tile.getType() == TileType.WATER) {
-            boolean platform = !tile.isEmpty()
-                && tile.getPlant().getDef().hasBehavior(BehaviorType.WATER_PLATFORM);
-            return def.isCanPlantOnWater() || platform;
+            boolean somethingFloatingHere = !tile.isEmpty() && tile.getPlant().getDef().isCanPlantOnWater();
+            return def.isCanPlantOnWater() || somethingFloatingHere;
         }
         if (!tile.isPlantable()) {
             return false;
@@ -137,17 +54,12 @@ class PlantingOps {
         if (tile.isEmpty()) {
             return true;
         }
-        return def.isCanStackOn() || def.hasBehavior(BehaviorType.PROTECTIVE_SHELL)
-            || tile.getPlant().getDef().isCanStackOn()
-            || tile.getPlant().getDef().hasBehavior(BehaviorType.WATER_PLATFORM);
+        return def.isCanStackOn() || tile.getPlant().getDef().isCanStackOn();
     }
 
     boolean pluckPlant(Board board, int x, int lane) {
         Tile tile = board.getTileAt(x, lane);
         if (tile == null || tile.isEmpty()) {
-            return false;
-        }
-        if (!board.getSpecialLevelHandler().canPluckPlant(tile.getPlant())) {
             return false;
         }
         tile.removePlant();

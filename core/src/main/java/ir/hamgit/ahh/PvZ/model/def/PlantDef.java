@@ -1,7 +1,7 @@
 package ir.hamgit.ahh.PvZ.model.def;
 
+import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
 import ir.hamgit.ahh.PvZ.model.enums.BehaviorType;
-import ir.hamgit.ahh.PvZ.model.enums.PlantFamily;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.enums.Tag;
 
@@ -10,6 +10,17 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Immutable "recipe card" describing one kind of plant. Populated by
+ * {@link PlantRegistry}.
+ *
+ * <p>Three fields ({@link #sunProductionAmount}, {@link #sunProductionIntervalTicks}
+ * and {@link #aoeRadius}) are additions on top of the original class-reference
+ * table. They exist so the generic, behavior-driven combat code in
+ * {@code model.Plant} can handle every sun producer / explosive without
+ * hard-coding logic per plant name. Fill them in from the real plants.csv
+ * once it is wired in - see {@link PlantRegistry}.</p>
+ */
 public final class PlantDef {
 
     private final PlantType type;
@@ -28,7 +39,6 @@ public final class PlantDef {
     private final int sunProductionAmount;
     private final int sunProductionIntervalTicks;
     private final int aoeRadius;
-    private final PlantAbilityProfile abilityProfile;
 
     public PlantDef(PlantType type, String displayName, int sunCost, int maxHp, int rechargeSeconds,
                     int damage, int range, Set<Tag> tags, List<BehaviorType> behaviors,
@@ -51,7 +61,6 @@ public final class PlantDef {
         this.sunProductionAmount = sunProductionAmount;
         this.sunProductionIntervalTicks = sunProductionIntervalTicks;
         this.aoeRadius = aoeRadius;
-        this.abilityProfile = PlantAbilityProfiles.get(type);
     }
 
     public PlantType getType() {
@@ -110,14 +119,6 @@ public final class PlantDef {
         return aoeRadius;
     }
 
-    public PlantAbilityProfile getAbilityProfile() {
-        return abilityProfile;
-    }
-
-    public PlantFamily getFamily() {
-        return PlantAbilityProfiles.getFamily(type);
-    }
-
     public boolean hasTag(Tag tag) {
         return tags.contains(tag);
     }
@@ -126,6 +127,7 @@ public final class PlantDef {
         return behaviors.contains(behavior);
     }
 
+    /** Returns {@code [seedPackets, coins]} required to upgrade from {@code level} to {@code level + 1}. */
     public int[] getUpgradeCost(int level) {
         int step = level + 1;
         return new int[] {seedPacketsToUpgrade * step, coinsToUpgrade * step};

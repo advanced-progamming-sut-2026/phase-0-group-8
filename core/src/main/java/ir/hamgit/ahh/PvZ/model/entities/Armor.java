@@ -2,6 +2,13 @@ package ir.hamgit.ahh.PvZ.model.entities;
 
 import ir.hamgit.ahh.PvZ.model.enums.ArmorType;
 
+/**
+ * A single armor layer worn by a zombie. HP values for CONE (370), BUCKET
+ * (1100), HELMET/SHOULDER (1600 each) and BLOCK (2200) come directly from
+ * the spec. NEWSPAPER/BARREL/PIANO/ARCADE_MACHINE HP are not given exact
+ * numbers in the spec (only their behaviour is described), so reasonable
+ * placeholders are used - tune freely.
+ */
 public class Armor {
 
     private static final int CONE_HP = 370;
@@ -24,12 +31,6 @@ public class Armor {
 
     public void takeDamage(int amount) {
         currentHp = Math.max(0, currentHp - amount);
-    }
-
-    public int absorbDamage(int amount) {
-        int absorbed = Math.min(currentHp, Math.max(0, amount));
-        currentHp -= absorbed;
-        return Math.max(0, amount - absorbed);
     }
 
     public boolean isDestroyed() {

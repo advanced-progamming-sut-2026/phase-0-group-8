@@ -1,5 +1,6 @@
 package ir.hamgit.ahh.PvZ.model.enums;
 
+/** Terrain types a board tile can have. */
 public enum TileType {
-    NORMAL, GRAVE, CRATER, WATER, ICY_GROUND, SLIPPERY_UP, SLIPPERY_DOWN, NECROMANCY
+    NORMAL, GRAVE, WATER, ICY_GROUND, SLIPPERY_UP, SLIPPERY_DOWN, NECROMANCY
 }

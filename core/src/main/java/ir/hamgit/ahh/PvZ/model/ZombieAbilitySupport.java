@@ -1,20 +1,37 @@
 package ir.hamgit.ahh.PvZ.model;
+
+import ir.hamgit.ahh.PvZ.model.entities.Armor;
 import ir.hamgit.ahh.PvZ.model.entities.Plant;
 import ir.hamgit.ahh.PvZ.model.entities.Zombie;
-import ir.hamgit.ahh.PvZ.model.entities.Armor;
-
 import ir.hamgit.ahh.PvZ.model.enums.ArmorType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+/**
+ * Board-adjacent helper for the zombie special abilities that manipulate
+ * plants or other zombies: Turquoise's laser, Hunter's ice throw, Octopus's
+ * throw, Fisherman's hook, Wizard's cat spell (+ reverting it when the
+ * Wizard dies), King's knight upgrade, Pianist's row shuffle, Tombraiser's
+ * graves.
+ *
+ * <p>Split out of {@link Board} purely to keep Board under the project's
+ * class-length Checkstyle/PMD guideline (500 lines) - it only holds the one
+ * bit of state that doesn't belong on Board itself (which wizard cast which
+ * cat spell); everything else it does is through Board's own public API, so
+ * it reads exactly like code that lives on Board.</p>
+ */
 class ZombieAbilitySupport {
 
-    private static final Set<ArmorType> METAL_ARMORS = EnumSet.of(
+    private static final java.util.Set<ArmorType> METAL_ARMORS = java.util.EnumSet.of(
         ArmorType.BUCKET, ArmorType.HELMET, ArmorType.SHOULDER, ArmorType.BLOCK, ArmorType.ARCADE_MACHINE);
 
     private final Map<Plant, Zombie> catSpellCasters = new HashMap<>();
 
+    /** MagnetShroom: strips the first metal armor layer off the nearest zombie in range. */
     boolean stealMetalArmorNear(Board board, int plantX, int lane, int range) {
         for (Zombie z : board.getZombies()) {
             boolean inRange = z.isAlive() && z.getLane() == lane && Math.abs(z.getX() - plantX) <= range;
@@ -117,6 +134,7 @@ class ZombieAbilitySupport {
         }
     }
 
+    /** Per spec: a cat-transformed plant reverts once the wizard that cast it dies. */
     void revertCatsCastBy(Zombie wizard) {
         catSpellCasters.entrySet().removeIf(entry -> {
             boolean castByThisWizard = entry.getValue() == wizard;
@@ -159,32 +177,6 @@ class ZombieAbilitySupport {
             Tile tile = board.getTileAt(c, r);
             if (tile != null && tile.isEmpty()) {
                 tile.makeGrave();
-                if (board.getChapter() == ir.hamgit.ahh.PvZ.model.enums.ChapterType.DARK_AGES) {
-                    tile.rollDarkAgesReward();
-                }
-            }
-        }
-    }
-
-    void damageNearestPlantLeft(Board board, int lane, double zombieX, int damage) {
-        for (int x = Math.min(board.getColumns() - 1, (int) zombieX); x >= 0; x--) {
-            Tile tile = board.getTileAt(x, lane);
-            if (tile != null && !tile.isEmpty()) {
-                Plant plant = tile.getPlant();
-                plant.takeDamage(damage);
-                if (!plant.isAlive()) {
-                    board.handlePlantDestroyed(plant);
-                }
-                return;
-            }
-        }
-    }
-
-    void destroyPlantsInLane(Board board, int lane) {
-        for (int x = 0; x < board.getColumns(); x++) {
-            Tile tile = board.getTileAt(x, lane);
-            for (Plant plant : tile.getPlantLayers()) {
-                board.destroyPlantInstantly(plant);
             }
         }
     }

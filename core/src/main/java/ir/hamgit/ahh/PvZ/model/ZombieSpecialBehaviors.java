@@ -1,13 +1,28 @@
 package ir.hamgit.ahh.PvZ.model;
+
 import ir.hamgit.ahh.PvZ.model.entities.Plant;
 import ir.hamgit.ahh.PvZ.model.entities.Zombie;
-
 import ir.hamgit.ahh.PvZ.model.enums.ArmorType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
 
 import java.util.Map;
 
-public final class ZombieSpecialBehaviors {
+/**
+ * Per-species "special ability" methods - Gargantuar's imp throw, Turquoise's
+ * steal+laser, Prospector's dynamite, Pianist's row shuffle, Barrel Roller's
+ * imp spawn, Ra's sun theft, Tombraiser's graves, Hunter's freeze, Fisherman's
+ * hook, Octopus's throw, Jester's spin countdown, Wizard's cat spell, King's
+ * knight upgrade - dispatched once per tick from {@link Zombie#tick}.
+ *
+ * <p>Split out of {@link Zombie} purely to keep it under the project's
+ * class-length Checkstyle/PMD guideline. This tightly-coupled state (which
+ * timer is counting down, how much sun was stolen, ...) stays conceptually
+ * part of Zombie - it's reached through a handful of narrow package-private
+ * accessors added to Zombie specifically for this split (getActiveEffects,
+ * addStolenSun, setHasThrownImp, ...), the same pattern used for Board's
+ * splits (ZombieAbilitySupport, BoardCombatOps, PlantingOps, SunEconomy).</p>
+ */
+class ZombieSpecialBehaviors {
 
     private static final int WIZARD_CAST_INTERVAL_TICKS = 80;
     private static final int KING_UPGRADE_INTERVAL_TICKS = 100;
@@ -22,10 +37,7 @@ public final class ZombieSpecialBehaviors {
     private static final int HOOK_INTERVAL_TICKS = 40;
     private static final int OCTOPUS_THROW_INTERVAL_TICKS = 90;
 
-    public ZombieSpecialBehaviors() {
-    }
-
-    public void run(Zombie zombie,Board board) {
+    void run(Zombie zombie,Board board) {
         switch (zombie.getDef().getType()) {
             case GARGANTUAR -> runGargantuarBehavior(zombie, board);
             case ARCADE, TROGLOBITE -> runPushObjectBehavior(zombie, board);
@@ -41,8 +53,6 @@ public final class ZombieSpecialBehaviors {
             case JESTER -> runJesterBehavior(zombie);
             case WIZARD -> runWizardBehavior(zombie, board);
             case KING -> runKingBehavior(zombie, board);
-            case ZOMBOTANY_PEA -> runZombotanyPea(zombie, board);
-            case ZOMBOTANY_JALAPENO -> runZombotanyJalapeno(zombie, board);
             default -> { }
         }
     }
@@ -168,19 +178,6 @@ public final class ZombieSpecialBehaviors {
     private void runKingBehavior(Zombie zombie,Board board) {
         if (tickTimer(zombie, "kingUpgrade", KING_UPGRADE_INTERVAL_TICKS)) {
             board.upgradeNearbyZombieToKnight(zombie);
-        }
-    }
-
-    private void runZombotanyPea(Zombie zombie, Board board) {
-        if (tickTimer(zombie, "peaShot", 20)) {
-            board.damageNearestPlantLeft(zombie.getLane(), zombie.getX(), 20);
-        }
-    }
-
-    private void runZombotanyJalapeno(Zombie zombie, Board board) {
-        if (tickTimer(zombie, "jalapenoFuse", 100)) {
-            board.destroyPlantsInLane(zombie.getLane());
-            zombie.forceKill();
         }
     }
 }

@@ -1,8 +1,8 @@
 package ir.hamgit.ahh.PvZ.model.entities;
 
-import ir.hamgit.ahh.PvZ.model.Board;
-import ir.hamgit.ahh.PvZ.model.Tile;
-import ir.hamgit.ahh.PvZ.model.ZombieSpecialBehaviors;
+
+
+import ir.hamgit.ahh.PvZ.model.*;
 import ir.hamgit.ahh.PvZ.model.def.ZombieDef;
 import ir.hamgit.ahh.PvZ.model.enums.*;
 
@@ -11,12 +11,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A live zombie on the board. Generic movement/attack/armor handling lives
+ * here for every zombie; each species' signature ability (per the "زامبی‌ها"
+ * section of the spec) is a small private method dispatched from
+ * {@link #runSpecialAbility(Board)}, using {@link #activeEffects} as a
+ * generic countdown-timer bag so we don't need one bespoke field per zombie.
+ */
 public class Zombie {
 
     private static final double GLOW_CHANCE = 0.05;
     private static final int ALL_STAR_SPRINT_MULTIPLIER = 3;
     private static final int ENRAGED_MULTIPLIER = 3;
     private static final int BIG_OBSTACLE_HP_THRESHOLD = 1000;
+    /** Must match {@link ZombieSpecialBehaviors}'s copy - only the constructor's initial seed needs it here. */
     private static final int DYNAMITE_FUSE_TICKS = 100;
 
     private final ZombieDef def;
@@ -33,32 +41,19 @@ public class Zombie {
     private boolean torchLit = true;
     private final Map<String, Integer> activeEffects = new HashMap<>();
     private int frozenTicks;
-    private int stunnedTicks;
-    private int chilledTicks;
-    private int poisonTicks;
-    private int poisonDamage;
-    private int poisonTimer;
     private double chillFactor = 1.0;
     private boolean hypnotized;
-    private int hypnotizedDamagePercent = 100;
     private boolean reversed;
     private boolean dynamiteActive;
     private boolean hadBarrel;
     private boolean impsSpawned;
     private boolean submerged;
     private boolean sprintOver;
-    private final double difficultyMultiplier;
-    private boolean stationary;
     private final ZombieSpecialBehaviors specialBehaviors = new ZombieSpecialBehaviors();
 
     public Zombie(ZombieDef def, int lane, double startX) {
-        this(def, lane, startX, 1.0);
-    }
-
-    public Zombie(ZombieDef def, int lane, double startX, double difficultyMultiplier) {
         this.def = def;
-        this.difficultyMultiplier = difficultyMultiplier;
-        this.currentHp = Math.max(1, (int) Math.round(def.getMaxHp() * difficultyMultiplier));
+        this.currentHp = def.getMaxHp();
         this.lane = lane;
         this.x = startX;
         this.glowing = Math.random() < GLOW_CHANCE;
@@ -78,19 +73,11 @@ public class Zombie {
         if (!alive) {
             return;
         }
-        tickStatusEffects();
-        if (!alive) {
-            return;
-        }
         if (frozenTicks > 0) {
             frozenTicks--;
             return;
         }
-        if (stunnedTicks > 0) {
-            stunnedTicks--;
-            return;
-        }
-        if (!isImmobile() && !stationary) {
+        if (!isImmobile()) {
             tryMove(board);
         }
         runSpecialAbility(board);
@@ -129,7 +116,8 @@ public class Zombie {
     }
 
     private boolean canFlyOver(Plant p) {
-        if (p.getDef().hasBehavior(BehaviorType.PREVENT_JUMP)) {
+        boolean isTallNut = p.getDef().getType() == PlantType.TALL_NUT;
+        if (isTallNut) {
             return false;
         }
         boolean bigObstacle = p.getDef().getMaxHp() >= BIG_OBSTACLE_HP_THRESHOLD;
@@ -138,34 +126,33 @@ public class Zombie {
     }
 
     private void attackPlant(Board board, Plant target) {
-        if (def.getType() == ZombieType.SNORKEL) {
-            submerged = false;
-        }
-        if (target.getDef().hasBehavior(BehaviorType.HYPNOTIZE_WHEN_EATEN)) {
-            target.onEaten(board, this);
-            return;
-        }
         if (instantKillsPlants()) {
             board.destroyPlantInstantly(target);
             markAllStarSprintOver();
-            if (def.getType() == ZombieType.ZOMBOTANY_SQUASH) {
-                forceKill();
-            }
             return;
         }
-        int baseDamage = Math.max(1, (int) Math.round(def.getDamage() * difficultyMultiplier));
-        int dmg = isEnraged() ? baseDamage * ENRAGED_MULTIPLIER : baseDamage;
+        if (target.getDef().hasBehavior(BehaviorType.HYPNOTIZE)) {
+            board.destroyPlantInstantly(target);
+            this.hypnotize();
+            return;
+        }
+        if (target.getDef().hasTag(Tag.MOVE_ZOMBIES)) {
+            board.destroyPlantInstantly(target);
+            redirectToAdjacentLane(board);
+            return;
+        }
+        int dmg = isEnraged() ? def.getDamage() * ENRAGED_MULTIPLIER : def.getDamage();
         target.takeDamage(dmg);
-        target.onBitten(board, this);
         if (!target.isAlive()) {
             board.handlePlantDestroyed(target);
         }
     }
 
-    public void redirectToAdjacentLane(int rows) {
+    /** Garlic: eating it doesn't kill the zombie, it gets shoved into a neighboring lane instead. */
+    private void redirectToAdjacentLane(Board board) {
         int delta = Math.random() < 0.5 ? -1 : 1;
         int candidate = lane + delta;
-        lane = (candidate < 0 || candidate >= rows) ? lane - delta : candidate;
+        lane = (candidate < 0 || candidate >= board.getRows()) ? lane - delta : candidate;
     }
 
     private void markAllStarSprintOver() {
@@ -188,7 +175,7 @@ public class Zombie {
     private void moveAsHypnotized(Board board) {
         Zombie enemy = board.getNearestEnemyZombieInFront(this);
         if (enemy != null) {
-            enemy.takeDamage(def.getDamage() * hypnotizedDamagePercent / 100, false, false);
+            enemy.takeDamage(def.getDamage(), false, false);
             if (!enemy.isAlive()) {
                 board.markDeathHandledIfNeeded(enemy);
             }
@@ -208,9 +195,6 @@ public class Zombie {
         }
         if (isSpinning()) {
             base *= 2;
-        }
-        if (isEnraged()) {
-            base *= ENRAGED_MULTIPLIER;
         }
         return base;
     }
@@ -239,20 +223,6 @@ public class Zombie {
         specialBehaviors.run(this, board);
     }
 
-    private void tickStatusEffects() {
-        if (chilledTicks > 0 && --chilledTicks == 0) {
-            chillFactor = 1.0;
-        }
-        if (poisonTicks > 0) {
-            poisonTicks--;
-            poisonTimer--;
-            if (poisonTimer <= 0) {
-                takeDamage(poisonDamage, true);
-                poisonTimer = Board.TICKS_PER_SECOND;
-            }
-        }
-    }
-
     public void takeDamage(int amount, boolean isPoisonDamage) {
         takeDamage(amount, isPoisonDamage, false);
     }
@@ -261,18 +231,15 @@ public class Zombie {
         if (!alive || (submerged && !fromLobber)) {
             return;
         }
-        int remaining = amount;
         if (!isPoisonDamage) {
             for (Armor armor : armors) {
                 if (!armor.isDestroyed()) {
-                    remaining = armor.absorbDamage(remaining);
-                    if (remaining <= 0) {
-                        return;
-                    }
+                    armor.takeDamage(amount);
+                    return;
                 }
             }
         }
-        currentHp -= remaining;
+        currentHp -= amount;
         if (currentHp <= 0) {
             alive = false;
         }
@@ -282,7 +249,7 @@ public class Zombie {
         alive = false;
     }
 
-    public void die(Board board) {
+    void die(Board board) {
         deathHandled = true;
         System.out.printf("Zombie of type %s is dead at (%.0f, %d)%n", def.getType(), x, lane);
         returnStolenSunOnDeath(board);
@@ -310,27 +277,7 @@ public class Zombie {
 
     public void applyChill(double factor, int ticks) {
         this.chillFactor = factor;
-        chilledTicks = Math.max(chilledTicks, ticks);
-    }
-
-    public void applyStun(int ticks) {
-        stunnedTicks = Math.max(stunnedTicks, ticks);
-    }
-
-    public void applyPoison(int damage, int ticks) {
-        poisonDamage = Math.max(poisonDamage, damage);
-        poisonTicks = Math.max(poisonTicks, ticks);
-        poisonTimer = 1;
-    }
-
-    public void freeze(int ticks) {
-        frozenTicks = Math.max(frozenTicks, ticks);
-    }
-
-    public void warm() {
-        frozenTicks = 0;
-        chilledTicks = 0;
-        chillFactor = 1.0;
+        activeEffects.put("chilled", ticks);
     }
 
     public void triggerSpin(int ticks) {
@@ -341,24 +288,6 @@ public class Zombie {
 
     public void hypnotize() {
         this.hypnotized = true;
-    }
-
-    public void hypnotize(boolean healthBuff, boolean damageBuff) {
-        hypnotize();
-        if (healthBuff) {
-            currentHp += Math.max(1, def.getMaxHp() / 2);
-        }
-        if (damageBuff) {
-            hypnotizedDamagePercent = 150;
-        }
-    }
-
-    public boolean isHypnotized() {
-        return hypnotized;
-    }
-
-    public void knockBack(int tiles) {
-        x += Math.max(0, tiles);
     }
 
     public void extinguishDynamite() {
@@ -374,6 +303,7 @@ public class Zombie {
         armors.removeIf(a -> a.getType() == type);
     }
 
+    /** Used by e.g. King ("upgrades" a nearby normal zombie into a knight). */
     public void addArmor(ArmorType type) {
         armors.add(new Armor(type));
     }
@@ -406,7 +336,7 @@ public class Zombie {
         return lane;
     }
 
-    public void setLane(int lane) {
+    void setLane(int lane) {
         this.lane = lane;
     }
 
@@ -434,49 +364,52 @@ public class Zombie {
         return glowing;
     }
 
-    public void setStationary(boolean stationary) {
-        this.stationary = stationary;
-    }
+    // ------------------------------------------------------------------
+    // Package-private accessors for ZombieSpecialBehaviors only - not part
+    // of Zombie's public API, just the seam for that split (see its javadoc).
+    // ------------------------------------------------------------------
 
-    public Map<String, Integer> getActiveEffects() {
+    Map<String, Integer> getActiveEffects() {
         return activeEffects;
     }
 
-    public void addStolenSun(int amount) {
+    void addStolenSun(int amount) {
         stolenSun += amount;
     }
 
-    public boolean hasThrownImp() {
+    boolean hasThrownImp() {
         return hasThrownImp;
     }
 
-    public void setHasThrownImp(boolean value) {
+    void setHasThrownImp(boolean value) {
         this.hasThrownImp = value;
     }
 
-    public boolean isDynamiteActive() {
+    boolean isDynamiteActive() {
         return dynamiteActive;
     }
 
-    public void setDynamiteActive(boolean value) {
+    void setDynamiteActive(boolean value) {
         this.dynamiteActive = value;
     }
 
-    public void setReversed(boolean value) {
+    void setReversed(boolean value) {
         this.reversed = value;
     }
 
-    public boolean isHadBarrel() {
+    boolean isHadBarrel() {
         return hadBarrel;
     }
 
-    public void setHadBarrel(boolean value) {
+    void setHadBarrel(boolean value) {
         this.hadBarrel = value;
     }
 
-    public boolean isImpsSpawned() { return impsSpawned; }
+    boolean isImpsSpawned() {
+        return impsSpawned;
+    }
 
-    public void setImpsSpawned(boolean value) {
+    void setImpsSpawned(boolean value) {
         this.impsSpawned = value;
     }
 }

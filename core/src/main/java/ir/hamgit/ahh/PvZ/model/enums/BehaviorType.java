@@ -1,5 +1,8 @@
 package ir.hamgit.ahh.PvZ.model.enums;
 
+/** Tags describing what a plant/zombie mechanically does; used to drive
+ *  generic, data-based dispatch in {@code Plant} and {@code Zombie} instead
+ *  of hard-coding per-species logic everywhere. */
 public enum BehaviorType {
     PRODUCE_SUN, RAMP_UP_SUN, INSTANT_SUN, DISAPPEAR_AFTER_ACTION,
     SHOOT_FORWARD, SHOOT_ARC, SHOOT_ICE, SHOOT_FIRE, SHOOT_POISON,

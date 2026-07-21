@@ -1,201 +1,224 @@
 package ir.hamgit.ahh.PvZ.model.entities;
 
+
 import ir.hamgit.ahh.PvZ.model.Board;
-import ir.hamgit.ahh.PvZ.model.PlantBehaviorSupport;
-
 import ir.hamgit.ahh.PvZ.model.def.PlantDef;
-import ir.hamgit.ahh.PvZ.model.def.PlantLevelEffects;
-import ir.hamgit.ahh.PvZ.model.registry.ZombieRegistry;
 import ir.hamgit.ahh.PvZ.model.enums.BehaviorType;
-import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
+import ir.hamgit.ahh.PvZ.model.enums.Tag;
 
+/**
+ * A live plant on the board. Behaviour is driven generically off
+ * {@link PlantDef#getBehaviors()} / {@link PlantDef#getTags()} rather than
+ * switching on plant name, so it scales to the full 49-plant table once the
+ * real CSV is loaded (see {@code model.def.PlantRegistry}).
+ */
 public class Plant {
 
+    private static final int ARM_TICKS_FOR_TRAPS = 20;
+    private static final int FUSE_TICKS_FOR_INSTANT_EXPLOSIVES = 10;
+    private static final int DEFAULT_FIRE_RATE_TICKS = 20;
     private static final int PLANT_FOOD_BOOST_TICKS = 100;
-    private static final double DOUBLE_SUN_CHANCE = 0.25;
     private static final int MAX_ICE_LAYERS = 3;
-    private static final int MAX_STACKED_HEADS = 5;
 
     private final PlantDef def;
+    private int currentHp;
     private final int x;
     private final int lane;
-    private final PlantBehaviorSupport behaviorSupport;
-    private int currentHp;
     private int level = 1;
-    private int stackCount = 1;
-    private int boostTicksRemaining;
-    private int iceLayers;
-    private int iceShellHp;
-    private int metalArmorHp;
     private boolean boosted;
-    private boolean frozen;
-    private boolean cat;
+    private int boostTicksRemaining;
+    private int sunProductionTimer;
     private boolean hasUncollectedSun;
-    private boolean deathBehaviorHandled;
-    private boolean blueFlame;
-    private boolean empoweredNextEater;
-    private boolean reflectionBoosted;
-    private boolean armorExplosionPending;
+    private boolean frozen;
+    private int iceLayers;
+    private boolean cat;
     private Plant underPlant;
+    private int shootCooldownTicks;
+    private int armTicksRemaining;
+    private int fuseTicksRemaining;
+    private boolean armed;
+    private boolean triggeredExplosion;
 
     public Plant(PlantDef def, int x, int lane) {
         this.def = def;
-        this.currentHp = Math.max(1, def.getMaxHp());
+        this.currentHp = def.getMaxHp();
         this.x = x;
         this.lane = lane;
-        this.behaviorSupport = new PlantBehaviorSupport(def);
-    }
-
-    public void tick(Board board) {
-        tickBoost();
-        frozen = iceLayers >= MAX_ICE_LAYERS;
-        if (isAlive() && !frozen && !cat) {
-            behaviorSupport.tick(this, board);
+        if (def.hasTag(Tag.TRAP)) {
+            this.armTicksRemaining = ARM_TICKS_FOR_TRAPS;
+        }
+        if (isFuseExplosive()) {
+            this.fuseTicksRemaining = FUSE_TICKS_FOR_INSTANT_EXPLOSIVES;
         }
     }
 
-    private void tickBoost() {
+    private boolean isFuseExplosive() {
+        boolean explosive = def.hasBehavior(BehaviorType.EXPLODE_ON_PLANT)
+            || def.hasBehavior(BehaviorType.EXPLODE_AREA);
+        return explosive && !def.hasTag(Tag.TRAP);
+    }
+
+    private static final int MAGNET_INTERVAL_TICKS = 20;
+    private int magnetCooldownTicks;
+
+    public void tick(Board board) {
+        if (!isAlive()) {
+            return;
+        }
+        frozen = iceLayers >= MAX_ICE_LAYERS;
+        if (frozen || cat) {
+            return;
+        }
+        tickTimers();
+        tickExplosives(board);
+        tickShooting(board);
+        tickSunProduction(board);
+        tickMagnetism(board);
+    }
+
+    private void tickMagnetism(Board board) {
+        if (!def.hasBehavior(BehaviorType.STEAL_ARMOR)) {
+            return;
+        }
+        if (magnetCooldownTicks > 0) {
+            magnetCooldownTicks--;
+            return;
+        }
+        if (board.stealMetalArmorNear(x, lane, Math.max(1, def.getRange()))) {
+            magnetCooldownTicks = MAGNET_INTERVAL_TICKS;
+        }
+    }
+
+    private void tickTimers() {
+        if (shootCooldownTicks > 0) {
+            shootCooldownTicks--;
+        }
         if (boostTicksRemaining > 0 && --boostTicksRemaining == 0) {
             boosted = false;
         }
+        if (armTicksRemaining > 0 && --armTicksRemaining == 0) {
+            armed = true;
+        }
     }
 
+    private void tickExplosives(Board board) {
+        if (triggeredExplosion) {
+            return;
+        }
+        if (def.hasTag(Tag.TRAP) && (def.hasBehavior(BehaviorType.EXPLODE_ON_PLANT) || armed)) {
+            tickTrapExplosive(board);
+        } else if (isFuseExplosive()) {
+            tickFuseExplosive(board);
+        }
+    }
+
+    private void tickTrapExplosive(Board board) {
+        if (armed && board.hasAdjacentZombie(x, lane)) {
+            explode(board);
+        }
+    }
+
+    private void tickFuseExplosive(Board board) {
+        if (fuseTicksRemaining > 0) {
+            fuseTicksRemaining--;
+            if (fuseTicksRemaining <= 0) {
+                explode(board);
+            }
+        }
+    }
+
+    private void explode(Board board) {
+        triggeredExplosion = true;
+        boolean wholeRow = def.hasBehavior(BehaviorType.EXPLODE_AREA) && def.getAoeRadius() >= 9;
+        int radius = wholeRow ? 9 : Math.max(1, def.getAoeRadius());
+        board.dealAreaDamageToZombies(x, lane, radius, def.getDamage());
+        board.destroyPlantInstantly(this);
+    }
+
+    private void tickShooting(Board board) {
+        if (!canShoot() || shootCooldownTicks > 0) {
+            return;
+        }
+        if (isRangedShooter() && board.hasZombieInLaneAhead(x, lane, def.getRange())) {
+            fireProjectile(board);
+        } else if (def.hasBehavior(BehaviorType.INSTANT_KILL_PLANT)) {
+            tryMeleeAttack(board);
+        }
+    }
+
+    private boolean isRangedShooter() {
+        return def.hasBehavior(BehaviorType.SHOOT_FORWARD) || def.hasBehavior(BehaviorType.SHOOT_ARC)
+            || def.hasBehavior(BehaviorType.SHOOT_ICE) || def.hasBehavior(BehaviorType.SHOOT_FIRE)
+            || def.hasBehavior(BehaviorType.SHOOT_POISON);
+    }
+
+    private void fireProjectile(Board board) {
+        int shots = boosted ? 2 : 1;
+        for (int i = 0; i < shots; i++) {
+            board.spawnProjectile(this);
+        }
+        shootCooldownTicks = DEFAULT_FIRE_RATE_TICKS;
+    }
+
+    private static final int MELEE_DIGEST_TICKS = 150;
+
+    private void tryMeleeAttack(Board board) {
+        if (board.hasAdjacentZombie(x, lane)) {
+            board.dealAreaDamageToZombies(x, lane, 0, Integer.MAX_VALUE / 2);
+            shootCooldownTicks = MELEE_DIGEST_TICKS;
+        }
+    }
+
+    private void tickSunProduction(Board board) {
+        if (!def.hasBehavior(BehaviorType.PRODUCE_SUN) || hasUncollectedSun) {
+            return;
+        }
+        int interval = boosted ? Math.max(1, def.getSunProductionIntervalTicks() / 2)
+            : def.getSunProductionIntervalTicks();
+        if (interval <= 0) {
+            return;
+        }
+        sunProductionTimer++;
+        if (sunProductionTimer >= interval) {
+            sunProductionTimer = 0;
+            hasUncollectedSun = true;
+            board.spawnProducedSun(this);
+        }
+    }
+
+    /** Plant Food: boosts for a while and, per spec, makes producers give sun and
+     *  detonates fuse-explosives immediately. */
     public void applyPlantFood(Board board) {
-        applyPlantFood(board, PLANT_FOOD_BOOST_TICKS);
-    }
-
-    public void applyPlantFood(Board board, int durationTicks) {
         boosted = true;
-        boostTicksRemaining = Math.max(boostTicksRemaining, durationTicks);
-        behaviorSupport.applyPlantFood(this, board);
+        boostTicksRemaining = PLANT_FOOD_BOOST_TICKS;
+        if (def.hasBehavior(BehaviorType.PRODUCE_SUN)) {
+            sunProductionTimer = def.getSunProductionIntervalTicks();
+        }
+        if (isFuseExplosive() && !triggeredExplosion) {
+            explode(board);
+        }
     }
 
     public void takeDamage(int amount) {
-        if (frozen) {
-            damageIce(amount);
-        } else {
-            currentHp -= amount;
-            damageMetalArmor(amount);
-        }
-    }
-
-    private void damageMetalArmor(int amount) {
-        if (metalArmorHp <= 0) {
-            return;
-        }
-        int previous = metalArmorHp;
-        metalArmorHp = Math.max(0, metalArmorHp - Math.max(0, amount));
-        armorExplosionPending = previous > 0 && metalArmorHp == 0
-            && def.hasBehavior(BehaviorType.EXPLODE_ON_DEATH);
-    }
-
-    public void onBitten(Board board, Zombie attacker) {
-        if (def.hasBehavior(BehaviorType.REFLECT_DAMAGE)) {
-            int reflected = def.getDamage() + PlantLevelEffects.sum(def.getType(), level, "Reflect Dmg +");
-            reflected *= reflectionBoosted ? 2 : 1;
-            attacker.takeDamage(reflected, false);
-        }
-        if (def.hasBehavior(BehaviorType.REDIRECT_ZOMBIE)) {
-            attacker.redirectToAdjacentLane(board.getRows());
-        }
-        if (def.hasBehavior(BehaviorType.SUN_ON_HIT)) {
-            board.addSun(5 + PlantLevelEffects.sum(def.getType(), level, "Sun Drop +"));
-        }
-        if (armorExplosionPending) {
-            board.dealAreaDamageToZombies(x, lane, 1, effectiveDamage(def.getDamage()));
-            armorExplosionPending = false;
-        }
-    }
-
-    public void onEaten(Board board, Zombie attacker) {
-        board.destroyPlantInstantly(this);
-        if (empoweredNextEater) {
-            Zombie gargantuar = new Zombie(ZombieRegistry.get(ZombieType.GARGANTUAR),
-                attacker.getLane(), attacker.getX());
-            gargantuar.hypnotize(true, true);
-            board.getZombies().add(gargantuar);
-            attacker.forceKill();
-            empoweredNextEater = false;
-            return;
-        }
-        attacker.hypnotize(
-            PlantLevelEffects.has(def.getType(), level, "Zombie HP Buff"),
-            PlantLevelEffects.has(def.getType(), level, "Zombie Dmg Buff"));
-    }
-
-    public void triggerDeathBehavior(Board board) {
-        if (deathBehaviorHandled) {
-            return;
-        }
-        deathBehaviorHandled = true;
-        if (def.hasBehavior(BehaviorType.EXPLODE_ON_DEATH)) {
-            int radius = Math.max(1, def.getAbilityProfile().getSplashRadius());
-            int damage = effectiveDamage(def.getDamage())
-                + PlantLevelEffects.sum(def.getType(), level, "Explode Dmg +");
-            board.dealAreaDamageToZombies(x, lane, radius, damage);
-        } else if (PlantLevelEffects.has(def.getType(), level, "AoE on Death")) {
-            board.dealAreaDamageToZombies(x, lane, 1, Math.max(100, effectiveDamage(def.getDamage())));
-        }
+        currentHp -= frozen ? amount * 2 : amount;
     }
 
     public void applyIceLayer() {
         iceLayers = Math.min(MAX_ICE_LAYERS, iceLayers + 1);
-        if (iceLayers == MAX_ICE_LAYERS) {
-            frozen = true;
-            iceShellHp = 600;
-        }
     }
 
     public void meltIce() {
         iceLayers = 0;
         frozen = false;
-        iceShellHp = 0;
     }
 
     public void freezeCompletely() {
         iceLayers = MAX_ICE_LAYERS;
         frozen = true;
-        iceShellHp = 600;
-    }
-
-    public void damageIce(int amount) {
-        if (!frozen) {
-            return;
-        }
-        iceShellHp -= Math.max(0, amount);
-        if (iceShellHp <= 0) {
-            meltIce();
-        }
-    }
-
-    public boolean isFrozen() {
-        return frozen;
-    }
-
-    public int getIceShellHp() {
-        return iceShellHp;
     }
 
     public void markSunCollected() {
         hasUncollectedSun = false;
-    }
-
-    public boolean hasUncollectedSun() {
-        return hasUncollectedSun;
-    }
-
-    public void setHasUncollectedSun(boolean value) {
-        hasUncollectedSun = value;
-    }
-
-    public int getSunProductionAmount() {
-        int amount = behaviorSupport.getSunAmount()
-            + PlantLevelEffects.sum(def.getType(), level, "Sun +");
-        if (PlantLevelEffects.has(def.getType(), level, "Double Sun Chance")
-            && Math.random() < DOUBLE_SUN_CHANCE) {
-            amount *= 2;
-        }
-        return amount;
     }
 
     public void turnIntoCat() {
@@ -222,72 +245,8 @@ public class Plant {
         currentHp = 0;
     }
 
-    public void restoreHealth() {
-        currentHp = getEffectiveMaxHp();
-    }
-
     public void upgrade() {
         level++;
-        currentHp += PlantLevelEffects.sum(def.getType(), level, "HP +")
-            - PlantLevelEffects.sum(def.getType(), level - 1, "HP +");
-        behaviorSupport.applyLevel(this);
-    }
-
-    public void setLevel(int targetLevel) {
-        while (level < Math.max(1, targetLevel)) {
-            upgrade();
-        }
-    }
-
-    public int effectiveDamage(int baseValue) {
-        return baseValue + PlantLevelEffects.sum(def.getType(), level, "Dmg +");
-    }
-
-    public int getEffectiveMaxHp() {
-        return Math.max(1, def.getMaxHp() + PlantLevelEffects.sum(def.getType(), level, "HP +"));
-    }
-
-    public void addPermanentArmor(int armorHp) {
-        int armor = Math.max(0, armorHp);
-        currentHp += armor;
-        metalArmorHp += armor;
-    }
-
-    public void boostReflection() {
-        reflectionBoosted = true;
-    }
-
-    public void resetLifespan() {
-        behaviorSupport.resetLifespan(this);
-    }
-
-    public void growImmediately() {
-        behaviorSupport.growImmediately(this);
-    }
-
-    public void armImmediately() {
-        behaviorSupport.armImmediately();
-    }
-
-    public void enableBlueFlame() {
-        blueFlame = true;
-    }
-
-    public boolean hasBlueFlame() {
-        return blueFlame;
-    }
-
-    public void empowerNextEater() {
-        empoweredNextEater = true;
-    }
-
-    public boolean addStackedHead() {
-        if (stackCount >= MAX_STACKED_HEADS) {
-            return false;
-        }
-        stackCount++;
-        currentHp += getEffectiveMaxHp();
-        return true;
     }
 
     public PlantDef getDef() {
@@ -308,10 +267,6 @@ public class Plant {
 
     public int getLevel() {
         return level;
-    }
-
-    public int getStackCount() {
-        return stackCount;
     }
 
     public boolean isBoosted() {
