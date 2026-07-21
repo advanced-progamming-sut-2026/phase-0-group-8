@@ -6,9 +6,10 @@ import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
 import ir.hamgit.ahh.PvZ.model.special.MinigameLevelHandler;
 
+
 public class ZombotanyGame implements MinigameSession {
 
-    private fina
+    private final Board board;
 
     public ZombotanyGame(int level) {
         board = new Board(ChapterType.MINIGAME, 1, Math.min(5, level + 2), null,
