@@ -3,12 +3,10 @@ package ir.hamgit.ahh.PvZ.model.def;
 import ir.hamgit.ahh.PvZ.model.enums.ArmorType;
 import ir.hamgit.ahh.PvZ.model.enums.BehaviorType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
-import ir.hamgit.ahh.PvZ.model.registry.ZombieRegistry;
 
 import java.util.Collections;
 import java.util.List;
 
-/** Immutable "recipe card" describing one kind of zombie. Populated by {@link ZombieRegistry}. */
 public final class ZombieDef {
 
     private final ZombieType type;

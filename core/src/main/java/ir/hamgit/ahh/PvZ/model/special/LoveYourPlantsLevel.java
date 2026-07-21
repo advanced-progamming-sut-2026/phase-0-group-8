@@ -3,6 +3,7 @@ package ir.hamgit.ahh.PvZ.model.special;
 
 import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.entities.Plant;
+import ir.hamgit.ahh.PvZ.model.enums.BehaviorType;
 
 public class LoveYourPlantsLevel extends SpecialLevelHandler {
 
@@ -15,7 +16,11 @@ public class LoveYourPlantsLevel extends SpecialLevelHandler {
 
     @Override
     public void onPlantLost(Board board, Plant plant) {
-        lossCount++;
+        boolean intentional = plant.getDef().hasBehavior(BehaviorType.DISAPPEAR_AFTER_ACTION)
+            || plant.getDef().hasBehavior(BehaviorType.LIMITED_LIFESPAN);
+        if (!intentional) {
+            lossCount++;
+        }
     }
 
     @Override

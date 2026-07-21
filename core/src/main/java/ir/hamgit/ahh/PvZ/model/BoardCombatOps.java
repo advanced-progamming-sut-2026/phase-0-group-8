@@ -1,19 +1,12 @@
 package ir.hamgit.ahh.PvZ.model;
+import ir.hamgit.ahh.PvZ.model.entities.Plant;
+import ir.hamgit.ahh.PvZ.model.entities.Zombie;
 
 
 import ir.hamgit.ahh.PvZ.model.def.PlantDef;
-import ir.hamgit.ahh.PvZ.model.entities.Plant;
-import ir.hamgit.ahh.PvZ.model.entities.Zombie;
 import ir.hamgit.ahh.PvZ.model.enums.BehaviorType;
 
-/**
- * Targeting/damage/projectile helpers used by {@link Plant}, {@link Zombie}
- * and {@link Projectile}. Split out of {@link Board} purely to keep Board
- * under the project's class-length Checkstyle/PMD guideline - Board keeps
- * the exact same public methods (so nothing outside `model` even notices
- * this exists), they just delegate here. Reaches board state entirely
- * through Board's own public API, same pattern as {@link ZombieAbilitySupport}.
- */
+
 class BoardCombatOps {
 
     boolean hasZombieInLaneAhead(Board board, int plantX, int lane, int range) {
@@ -62,12 +55,15 @@ class BoardCombatOps {
 
     void spawnProjectile(Board board, Plant source) {
         PlantDef def = source.getDef();
-        boolean lobber = def.hasBehavior(BehaviorType.SHOOT_ARC);
-        boolean fire = def.hasBehavior(BehaviorType.SHOOT_FIRE);
-        boolean ice = def.hasBehavior(BehaviorType.SHOOT_ICE);
-        boolean poison = def.hasBehavior(BehaviorType.SHOOT_POISON);
-        board.getProjectiles().add(new Projectile(def.getType(), def.getDamage(), fire, ice, poison, lobber,
-            source.getX(), source.getLane()));
+        ProjectileSpec spec = ProjectileSpec.builder(def.getType(), def.getDamage(), source.getX(),
+                source.getLane())
+            .lobber(def.hasBehavior(BehaviorType.SHOOT_ARC))
+            .fire(def.hasBehavior(BehaviorType.SHOOT_FIRE))
+            .ice(def.hasBehavior(BehaviorType.SHOOT_ICE))
+            .poison(def.hasBehavior(BehaviorType.SHOOT_POISON))
+            .ignoreArmor(def.hasBehavior(BehaviorType.IGNORE_ARMOR))
+            .build();
+        board.getProjectiles().add(new Projectile(spec));
     }
 
     void dealAreaDamageToZombies(Board board, int centerX, int centerLane, int radius, int damage) {
@@ -84,11 +80,12 @@ class BoardCombatOps {
     }
 
     void handlePlantDestroyed(Board board, Plant target) {
+        target.triggerDeathBehavior(board);
         System.out.printf("Plant %s at (%d, %d) is destroyed.%n",
             target.getDef().getType(), target.getX(), target.getLane());
         Tile tile = board.getTileAt(target.getX(), target.getLane());
-        if (tile != null && tile.getPlant() == target) {
-            tile.removePlant();
+        if (tile != null) {
+            tile.removePlant(target);
         }
         board.getSpecialLevelHandler().onPlantLost(board, target);
     }

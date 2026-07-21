@@ -1,26 +1,14 @@
 package ir.hamgit.ahh.PvZ.model.def;
 
-import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
 import ir.hamgit.ahh.PvZ.model.enums.BehaviorType;
+import ir.hamgit.ahh.PvZ.model.enums.PlantFamily;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.enums.Tag;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Immutable "recipe card" describing one kind of plant. Populated by
- * {@link PlantRegistry}.
- *
- * <p>Three fields ({@link #sunProductionAmount}, {@link #sunProductionIntervalTicks}
- * and {@link #aoeRadius}) are additions on top of the original class-reference
- * table. They exist so the generic, behavior-driven combat code in
- * {@code model.Plant} can handle every sun producer / explosive without
- * hard-coding logic per plant name. Fill them in from the real plants.csv
- * once it is wired in - see {@link PlantRegistry}.</p>
- */
 public final class PlantDef {
 
     private final PlantType type;
@@ -32,6 +20,7 @@ public final class PlantDef {
     private final int range;
     private final Set<Tag> tags;
     private final List<BehaviorType> behaviors;
+    private final List<String> levelEffects;
     private final int seedPacketsToUpgrade;
     private final int coinsToUpgrade;
     private final boolean canStackOn;
@@ -39,11 +28,13 @@ public final class PlantDef {
     private final int sunProductionAmount;
     private final int sunProductionIntervalTicks;
     private final int aoeRadius;
+    private final PlantAbilityProfile abilityProfile;
 
     public PlantDef(PlantType type, String displayName, int sunCost, int maxHp, int rechargeSeconds,
                     int damage, int range, Set<Tag> tags, List<BehaviorType> behaviors,
-                    int seedPacketsToUpgrade, int coinsToUpgrade, boolean canStackOn,
-                    boolean canPlantOnWater, int sunProductionAmount, int sunProductionIntervalTicks,
+                    List<String> levelEffects, int seedPacketsToUpgrade, int coinsToUpgrade,
+                    boolean canStackOn, boolean canPlantOnWater, int sunProductionAmount,
+                    int sunProductionIntervalTicks,
                     int aoeRadius) {
         this.type = type;
         this.displayName = displayName;
@@ -53,7 +44,8 @@ public final class PlantDef {
         this.damage = damage;
         this.range = range;
         this.tags = tags.isEmpty() ? EnumSet.noneOf(Tag.class) : EnumSet.copyOf(tags);
-        this.behaviors = Collections.unmodifiableList(behaviors);
+        this.behaviors = List.copyOf(behaviors);
+        this.levelEffects = List.copyOf(levelEffects);
         this.seedPacketsToUpgrade = seedPacketsToUpgrade;
         this.coinsToUpgrade = coinsToUpgrade;
         this.canStackOn = canStackOn;
@@ -61,6 +53,7 @@ public final class PlantDef {
         this.sunProductionAmount = sunProductionAmount;
         this.sunProductionIntervalTicks = sunProductionIntervalTicks;
         this.aoeRadius = aoeRadius;
+        this.abilityProfile = PlantAbilityProfiles.get(type);
     }
 
     public PlantType getType() {
@@ -99,6 +92,15 @@ public final class PlantDef {
         return behaviors;
     }
 
+    public List<String> getLevelEffects() {
+        return levelEffects;
+    }
+
+    public String getLevelEffect(int level) {
+        return level < 2 || level > 4 || levelEffects.size() < 3
+            ? "" : levelEffects.get(level - 2);
+    }
+
     public boolean isCanStackOn() {
         return canStackOn;
     }
@@ -119,6 +121,14 @@ public final class PlantDef {
         return aoeRadius;
     }
 
+    public PlantAbilityProfile getAbilityProfile() {
+        return abilityProfile;
+    }
+
+    public PlantFamily getFamily() {
+        return PlantAbilityProfiles.getFamily(type);
+    }
+
     public boolean hasTag(Tag tag) {
         return tags.contains(tag);
     }
@@ -127,7 +137,6 @@ public final class PlantDef {
         return behaviors.contains(behavior);
     }
 
-    /** Returns {@code [seedPackets, coins]} required to upgrade from {@code level} to {@code level + 1}. */
     public int[] getUpgradeCost(int level) {
         int step = level + 1;
         return new int[] {seedPacketsToUpgrade * step, coinsToUpgrade * step};

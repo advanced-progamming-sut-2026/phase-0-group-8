@@ -101,6 +101,21 @@ final class JsonDefinitionLoader {
         return result;
     }
 
+    static List<String> strings(Map<String, Object> row, String key) {
+        Object value = required(row, key);
+        if (!(value instanceof List<?> values)) {
+            throw wrongType(key, "array");
+        }
+        List<String> result = new ArrayList<>();
+        for (Object item : values) {
+            if (!(item instanceof String text)) {
+                throw wrongType(key, "string array");
+            }
+            result.add(text);
+        }
+        return result;
+    }
+
     static <E extends Enum<E>> List<E> enums(Map<String, Object> row, String key,
                                              Class<E> enumType) {
         Object value = required(row, key);
