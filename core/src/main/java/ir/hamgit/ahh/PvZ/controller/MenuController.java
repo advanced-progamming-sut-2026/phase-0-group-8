@@ -48,11 +48,19 @@ public class MenuController {
     }
 
     public void run() {
-        System.out.println("Welcome to Plants vs Zombies 2!");
+        System.out.println("Welcome to Plants vs Zombies!");
         while (running && scanner.hasNextLine()) {
             System.out.print("> ");
             String input = scanner.nextLine();
+            handleCommandSafely(input);
+        }
+    }
+
+    private void handleCommandSafely(String input) {
+        try {
             handleCommand(input);
+        } catch (RuntimeException exception) {
+            System.out.println("Error: the command could not be completed. Check its name, values, and coordinates.");
         }
     }
 

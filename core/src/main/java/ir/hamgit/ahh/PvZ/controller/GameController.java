@@ -41,9 +41,6 @@ public class GameController {
         this.currentUser = user;
     }
 
-    public void startGame(String chapterName) {
-        startGame(chapterName, 1);
-    }
 
     public void startGame(String chapterName, int levelIndex) {
         scoreMode = false;
@@ -123,6 +120,10 @@ public class GameController {
     }
 
     public boolean selectPlant(PlantType type) {
+        if (type == null) {
+            System.out.println("Error: unknown plant type.");
+            return false;
+        }
         if (!isSelectableNow(type) || selectedPlants.contains(type)) {
             System.out.println("Cannot add plant " + type + ".");
             return false;
@@ -144,6 +145,10 @@ public class GameController {
     }
 
     public boolean removePlantSelection(PlantType type) {
+        if (type == null) {
+            System.out.println("Error: unknown plant type.");
+            return false;
+        }
         if (!selectedPlants.remove(type)) {
             System.out.println("Plant " + type + " was not selected.");
             return false;
@@ -153,6 +158,10 @@ public class GameController {
     }
 
     public boolean boostPlant(PlantType type) {
+        if (type == null) {
+            System.out.println("Error: unknown plant type.");
+            return false;
+        }
         if (!selectedPlants.contains(type)) {
             System.out.println("Select the plant before boosting it.");
             return false;
@@ -467,10 +476,6 @@ public class GameController {
 
     public Board getBoard() {
         return board;
-    }
-
-    public Set<PlantType> getSelectedPlants() {
-        return selectedPlants;
     }
 
     public void setCurrentUser(User user) {

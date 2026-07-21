@@ -3,7 +3,6 @@ package ir.hamgit.ahh.PvZ;
 import ir.hamgit.ahh.PvZ.controller.MenuController;
 import ir.hamgit.ahh.PvZ.model.repository.UserRepository;
 
-/** Command-line entry point for the complete phase project. */
 public final class Main {
 
     private Main() {

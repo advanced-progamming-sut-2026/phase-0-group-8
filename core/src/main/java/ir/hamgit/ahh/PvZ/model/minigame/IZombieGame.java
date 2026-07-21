@@ -151,7 +151,4 @@ public class IZombieGame implements MinigameSession {
         return board;
     }
 
-    public int getSunAmount() {
-        return sunAmount;
-    }
 }

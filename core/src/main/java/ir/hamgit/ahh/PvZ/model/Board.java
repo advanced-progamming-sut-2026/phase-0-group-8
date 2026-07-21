@@ -31,7 +31,6 @@ public class Board {
     private int tickCount;
     private final ChapterType chapter;
     private final int difficulty;
-    private final SpecialLevelType specialLevelType;
     private final SpecialLevelHandler specialLevelHandler;
     private final WaveManager waveManager;
     private final ZombieAbilitySupport zombieAbilities = new ZombieAbilitySupport();
@@ -45,7 +44,6 @@ public class Board {
         this.chapter = chapter;
         this.chapterMechanics = new ChapterMechanics(chapter);
         this.difficulty = difficulty;
-        this.specialLevelType = specialLevelType;
         this.specialLevelHandler = specialLevelHandler != null ? specialLevelHandler : new NormalLevelHandler();
         this.tiles = ChapterTerrainFactory.buildTiles(chapter, ROWS, COLUMNS, difficulty);
         this.lawnMowers = new boolean[ROWS];
@@ -54,8 +52,6 @@ public class Board {
         this.sunEconomy = new SunEconomy(getDifficultySpeedMultiplier());
         this.specialLevelHandler.onLevelStart(this);
     }
-
-    // Time advancement - "advance time -t <count> ticks"
 
     public void advanceTime(int ticks) {
         for (int i = 0; i < ticks && !levelOps.isGameOver(); i++) {
@@ -109,8 +105,6 @@ public class Board {
         sunEconomy.tickSuns();
     }
 
-    // Sun economy
-
     private void tickSunDrop() {
         sunEconomy.tickDrop(this);
     }
@@ -146,20 +140,15 @@ public class Board {
         sunEconomy.explodeRadioactiveSun(this, x, lane);
     }
 
-    // Planting / plucking / plant food (see PlantingOps)
     public boolean plantPlant(PlantType type, int x, int lane) {
         return plantingOps.plantPlant(this, type, x, lane);
     }
 
-    public boolean plantPlant(PlantType type, int x, int lane, int adjustedCost) {
-        return plantingOps.plantPlant(this, type, x, lane, adjustedCost, 1);
-    }
 
     public boolean plantPlant(PlantType type, int x, int lane, int adjustedCost, int level) {
         return plantingOps.plantPlant(this, type, x, lane, adjustedCost, level);
     }
 
-    /** Places a plant ignoring sun cost - used for level setup (e.g. Save Our Seeds pre-placed plants). */
     public boolean plantForFree(PlantType type, int x, int lane) {
         return plantingOps.plantForFree(this, type, x, lane);
     }
@@ -196,19 +185,6 @@ public class Board {
         return true;
     }
 
-    // Combat helpers used by Plant/Zombie/Projectile (see BoardCombatOps)
-
-    public boolean hasZombieInLaneAhead(int plantX, int lane, int range) {
-        return combatOps.hasZombieInLaneAhead(this, plantX, lane, range);
-    }
-
-    public boolean hasAdjacentZombie(int plantX, int lane) {
-        return combatOps.hasAdjacentZombie(this, plantX, lane);
-    }
-
-    public Zombie findNearestZombieAheadOfProjectile(int lane, double projectileX) {
-        return combatOps.findNearestZombieAheadOfProjectile(this, lane, projectileX);
-    }
 
     public Zombie getNearestEnemyZombieInFront(Zombie hypnotized) {
         return combatOps.getNearestEnemyZombieInFront(this, hypnotized);
@@ -218,9 +194,6 @@ public class Board {
         return combatOps.getPlantInFrontOf(this, zombie);
     }
 
-    public void spawnProjectile(Plant source) {
-        combatOps.spawnProjectile(this, source);
-    }
 
     public void dealAreaDamageToZombies(int centerX, int centerLane, int radius, int damage) {
         combatOps.dealAreaDamageToZombies(this, centerX, centerLane, radius, damage);
@@ -238,7 +211,6 @@ public class Board {
         combatOps.markDeathHandledIfNeeded(this, zombie);
     }
 
-    // Zombie-specific ability hooks (called from Zombie's per-type methods)
 
     public boolean hasPlantWithinTiles(int lane, double x, int range) {
         return zombieAbilities.hasPlantWithinTiles(this, lane, x, range);
@@ -276,7 +248,6 @@ public class Board {
         zombieAbilities.turnRandomPlantIntoCat(this, lane, wizard);
     }
 
-    /** Per spec: a cat-transformed plant reverts once the wizard that cast it dies. */
     public void revertCatsCastBy(Zombie wizard) {
         zombieAbilities.revertCatsCastBy(wizard);
     }
@@ -301,7 +272,6 @@ public class Board {
         zombieAbilities.destroyPlantsInLane(this, lane);
     }
 
-    // Lawn mower / zombie spawning / waves
     public void triggerLawnMower(int lane, Zombie triggeringZombie) {
         levelOps.triggerMower(this, lane, triggeringZombie);
     }
@@ -341,7 +311,6 @@ public class Board {
             waveManager.hasFinalWaveStarted());
     }
 
-    // Currency drops (see CurrencyLedger)
 
     public void maybeDropCurrency() {
         currencyLedger.maybeDropCurrency();
@@ -385,7 +354,6 @@ public class Board {
         return currencyLedger.drainPotsEarned();
     }
 
-    // Accessors
     boolean isInBounds(int x, int lane) {
         return x >= 0 && x < COLUMNS && lane >= 0 && lane < ROWS;
     }
@@ -470,9 +438,6 @@ public class Board {
         return chapter;
     }
 
-    public SpecialLevelType getSpecialLevelType() {
-        return specialLevelType;
-    }
 
     public SpecialLevelHandler getSpecialLevelHandler() {
         return specialLevelHandler;

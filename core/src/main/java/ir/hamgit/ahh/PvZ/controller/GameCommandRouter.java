@@ -6,12 +6,9 @@ import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
 import ir.hamgit.ahh.PvZ.view.BoardView;
 
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 final class GameCommandRouter {
 
-    private static final Pattern COORDINATES = Pattern.compile("(-?\\d+)\\s*,\\s*(-?\\d+)");
     private final GameController controller;
 
     GameCommandRouter(GameController controller) {
@@ -19,6 +16,10 @@ final class GameCommandRouter {
     }
 
     void handle(String raw) {
+        if (raw == null || raw.isBlank()) {
+            System.out.println("Error: enter a game command.");
+            return;
+        }
         Board board = controller.getBoard();
         if (board == null) {
             System.out.println("No level is currently running.");
@@ -27,7 +28,7 @@ final class GameCommandRouter {
         String command = raw.trim();
         Map<String, String> flags = CommandParser.parse(command);
         if (command.startsWith("advance time")) {
-            controller.advanceTime(CommandParser.getIntFlag(flags, "t", 1));
+            advanceTime(flags);
         } else if (command.startsWith("plant plant")) {
             plant(flags);
         } else if (command.startsWith("pluck plant")) {
@@ -41,6 +42,19 @@ final class GameCommandRouter {
         } else {
             handleDisplayOrBare(command, flags, board);
         }
+    }
+
+    private void advanceTime(Map<String, String> flags) {
+        String rawTicks = CommandParser.getFlag(flags, "t");
+        Integer ticks = 1;
+        if (rawTicks != null) {
+            ticks = CommandParser.parseInteger(rawTicks);
+        }
+        if (ticks == null) {
+            System.out.println("Error: ticks must be a whole number.");
+            return;
+        }
+        controller.advanceTime(ticks);
     }
 
     private void plant(Map<String, String> flags) {
@@ -85,13 +99,24 @@ final class GameCommandRouter {
     private void spawnZombie(Map<String, String> flags, Board board) {
         ZombieType type = controller.parseZombieName(CommandParser.getFlag(flags, "t"));
         int[] position = coordinates(CommandParser.getFlag(flags, "l"));
-        if (type != null && position != null) {
-            board.cheatSpawnZombie(type, position[0], position[1]);
+        if (type == null) {
+            System.out.println("Error: unknown zombie type.");
+            return;
         }
+        if (position == null) {
+            System.out.println("Error: coordinates are required as x,y.");
+            return;
+        }
+        board.cheatSpawnZombie(type, position[0], position[1]);
     }
 
     private void addResource(String command, Map<String, String> flags, Board board) {
-        int amount = CommandParser.getIntFlag(flags, "n", 0);
+        String rawAmount = CommandParser.getFlag(flags, "n");
+        Integer amount = CommandParser.parseInteger(rawAmount);
+        if (amount == null || amount < 0) {
+            System.out.println("Error: amount must be a nonnegative whole number.");
+            return;
+        }
         if (command.contains("sun")) {
             board.cheatAddSuns(amount);
         } else if (command.contains("coin")) {
@@ -125,16 +150,13 @@ final class GameCommandRouter {
         int[] position = coordinates(CommandParser.getFlag(flags, "l"));
         if (position != null) {
             BoardView.showTileStatus(board, position[0], position[1]);
+        } else {
+            System.out.println("Error: coordinates are required as x,y.");
         }
     }
 
     private int[] coordinates(String raw) {
-        if (raw == null) {
-            return null;
-        }
-        Matcher matcher = COORDINATES.matcher(raw);
-        return matcher.find() ? new int[] {Integer.parseInt(matcher.group(1)),
-            Integer.parseInt(matcher.group(2))} : null;
+        return CommandParser.parseCoordinates(raw);
     }
 
     @FunctionalInterface

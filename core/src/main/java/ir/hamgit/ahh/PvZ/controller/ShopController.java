@@ -35,8 +35,15 @@ public final class ShopController {
     }
 
     private void purchase(User user, Map<String, String> flags) {
-        Result result = ShopService.purchase(user, CommandParser.getFlag(flags, "i"),
-            CommandParser.getIntFlag(flags, "n", 1), CommandParser.getFlag(flags, "t"));
+        String rawCount = CommandParser.getFlag(flags, "n");
+        Integer count = 1;
+        if (rawCount != null) {
+            count = CommandParser.parseInteger(rawCount);
+        }
+        Result result = count == null
+            ? new Result(false, "Error: count must be a whole number.")
+            : ShopService.purchase(user, CommandParser.getFlag(flags, "i"), count,
+            CommandParser.getFlag(flags, "t"));
         if (result.isSuccessful()) {
             UserRepository.updateUser(user);
         }

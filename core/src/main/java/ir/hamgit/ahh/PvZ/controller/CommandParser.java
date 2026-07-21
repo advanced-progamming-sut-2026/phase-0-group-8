@@ -2,8 +2,12 @@ package ir.hamgit.ahh.PvZ.controller;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CommandParser {
+
+    private static final Pattern COORDINATES = Pattern.compile("(-?\\d+)\\s*,\\s*(-?\\d+)");
 
     public static Map<String, String> parse(String raw) {
         Map<String, String> result = new HashMap<>();
@@ -14,7 +18,7 @@ public class CommandParser {
         String[] tokens = trimmed.split("\\s+");
         StringBuilder command = new StringBuilder();
         int i = 0;
-        while (i < tokens.length && !tokens[i].startsWith("-")) {
+        while (i < tokens.length && !isFlagToken(tokens[i])) {
             if (command.length() > 0) {
                 command.append(" ");
             }
@@ -24,17 +28,17 @@ public class CommandParser {
         result.put("command", command.toString().trim());
         while (i < tokens.length) {
             String token = tokens[i];
-            if (token.startsWith("-") && i + 1 < tokens.length && !tokens[i + 1].startsWith("-")) {
+            if (isFlagToken(token) && i + 1 < tokens.length && !isFlagToken(tokens[i + 1])) {
                 String key = token.substring(1);
                 StringBuilder value = new StringBuilder(tokens[i + 1]);
                 i += 2;
-                while (i < tokens.length && !tokens[i].startsWith("-")) {
+                while (i < tokens.length && !isFlagToken(tokens[i])) {
                     value.append(" ").append(tokens[i]);
                     i++;
                 }
                 result.put(key, value.toString().trim());
                 result.put(token, value.toString().trim());
-            } else if (token.startsWith("-")) {
+            } else if (isFlagToken(token)) {
                 result.put(token.substring(1), "true");
                 result.put(token, "true");
                 i++;
@@ -50,19 +54,44 @@ public class CommandParser {
     }
 
     public static int getIntFlag(Map<String, String> flags, String key, int defaultValue) {
-        String val = getFlag(flags, key);
-        if (val == null) {
-            return defaultValue;
+        Integer value = getIntegerFlag(flags, key);
+        return value == null ? defaultValue : value;
+    }
+
+    public static Integer getIntegerFlag(Map<String, String> flags, String key) {
+        return parseInteger(getFlag(flags, key));
+    }
+
+    public static Integer parseInteger(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
         }
         try {
-            return Integer.parseInt(val.trim().split("\\s+", 2)[0]);
+            return Integer.valueOf(raw.trim().split("\\s+", 2)[0]);
         } catch (NumberFormatException e) {
-            return defaultValue;
+            return null;
         }
+    }
+
+    public static int[] parseCoordinates(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        Matcher matcher = COORDINATES.matcher(raw);
+        if (!matcher.find()) {
+            return null;
+        }
+        Integer x = parseInteger(matcher.group(1));
+        Integer y = parseInteger(matcher.group(2));
+        return x == null || y == null ? null : new int[] {x, y};
     }
 
     private static String normalizeKey(String key) {
         return key != null && key.startsWith("-") ? key.substring(1) : key;
+    }
+
+    private static boolean isFlagToken(String token) {
+        return token.startsWith("-") && !token.matches("-\\d+");
     }
 
     public static String getCommand(Map<String, String> flags) {

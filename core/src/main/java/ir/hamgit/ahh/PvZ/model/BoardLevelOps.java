@@ -10,7 +10,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-/** Spawning, mower/brain handling, encounter metrics and terminal level state. */
 final class BoardLevelOps {
 
     private final Set<ZombieType> encountered = EnumSet.noneOf(ZombieType.class);

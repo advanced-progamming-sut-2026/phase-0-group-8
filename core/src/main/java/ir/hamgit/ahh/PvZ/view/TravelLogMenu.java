@@ -79,7 +79,15 @@ public class TravelLogMenu {
 
     private MenuState playMinigame(Map<String, String> flags) {
         String name = CommandParser.getFlag(flags, "n");
-        int level = CommandParser.getIntFlag(flags, "l", 1);
+        String rawLevel = CommandParser.getFlag(flags, "l");
+        Integer level = 1;
+        if (rawLevel != null) {
+            level = CommandParser.parseInteger(rawLevel);
+        }
+        if (level == null) {
+            System.out.println("Minigame level must be a whole number from 1 to 3.");
+            return MenuState.TRAVEL_LOG;
+        }
         if (!minigames.start(name, level)) {
             System.out.println("Unknown minigame or invalid level; choose level 1, 2, or 3.");
             return MenuState.TRAVEL_LOG;

@@ -323,11 +323,4 @@ public class BeghouledGame implements MinigameSession {
         return board;
     }
 
-    public int getSunAmount() {
-        return sunAmount;
-    }
-
-    public int getMatchesMade() {
-        return matchesMade;
-    }
 }

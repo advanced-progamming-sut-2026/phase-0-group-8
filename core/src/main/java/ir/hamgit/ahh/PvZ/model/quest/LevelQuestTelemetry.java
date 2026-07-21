@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.function.Predicate;
 
-/** Captures exact per-session events needed by the twenty spreadsheet quests. */
 public final class LevelQuestTelemetry {
 
     private static final int SPEED_WINDOW_TICKS = 30 * Board.TICKS_PER_SECOND;
@@ -76,9 +75,6 @@ public final class LevelQuestTelemetry {
                 .mapToInt(Map.Entry::getValue).sum();
         }
 
-        public int totalPlacements() {
-            return placements.values().stream().mapToInt(Integer::intValue).sum();
-        }
     }
 
     private static final class Session {

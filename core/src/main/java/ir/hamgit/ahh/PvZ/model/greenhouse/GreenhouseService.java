@@ -9,7 +9,6 @@ import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
 
 import java.util.List;
 
-/** Applies greenhouse rules without command parsing, rendering, or persistence. */
 public final class GreenhouseService {
 
     private GreenhouseService() {

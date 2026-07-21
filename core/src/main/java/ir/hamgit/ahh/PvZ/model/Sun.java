@@ -1,10 +1,7 @@
 package ir.hamgit.ahh.PvZ.model;
 
-import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.enums.SunType;
 
-
-/** A sun object, either produced by a plant or falling from the sky. */
 public class Sun {
 
     private static final int FALL_TICKS = 50;
@@ -25,9 +22,6 @@ public class Sun {
         this(type, x, lane, false, -1);
     }
 
-    public Sun(SunType type, int x, int lane, boolean producedByPlant) {
-        this(type, x, lane, producedByPlant, -1);
-    }
 
     public Sun(SunType type, int x, int lane, boolean producedByPlant, int customValue) {
         this.type = type;
@@ -71,9 +65,6 @@ public class Sun {
         }
     }
 
-    public boolean isCollectable() {
-        return !collected;
-    }
 
     public void explodeIfRadioactive(Board board) {
         if (type == SunType.RADIOACTIVE) {

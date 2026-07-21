@@ -17,13 +17,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Owns command parsing for every minigame model. */
 final class MinigameCommandRouter {
 
-    private static final Pattern COORDINATES = Pattern.compile("(-?\\d+)\\s*,\\s*(-?\\d+)");
     private static final Pattern COORD_PAIR = Pattern.compile("(-?\\d+)\\D+(-?\\d+)");
 
     void handle(MinigameSession session, String raw) {
+        if (raw == null || raw.isBlank()) {
+            System.out.println("Error: enter a minigame command.");
+            return;
+        }
         if (raw != null && raw.trim().equalsIgnoreCase("help")) {
             showHelp(session);
             return;
@@ -104,7 +106,7 @@ final class MinigameCommandRouter {
         if (command.startsWith("place zombie")) {
             placeZombie(game, command);
         } else if (command.startsWith("advance time")) {
-            game.tick(ticks(command));
+            advance(ticks(command), game::tick);
         } else if (command.startsWith("show map")) {
             BoardView.showMap(game.getBoard());
         } else {
@@ -142,8 +144,14 @@ final class MinigameCommandRouter {
         List<Integer> values = new ArrayList<>();
         Matcher matcher = COORD_PAIR.matcher(raw);
         while (matcher.find() && values.size() < 4) {
-            values.add(Integer.parseInt(matcher.group(1)));
-            values.add(Integer.parseInt(matcher.group(2)));
+            Integer x = CommandParser.parseInteger(matcher.group(1));
+            Integer y = CommandParser.parseInteger(matcher.group(2));
+            if (x == null || y == null) {
+                values.clear();
+                break;
+            }
+            values.add(x);
+            values.add(y);
         }
         if (values.size() == 4) {
             game.swapPlants(values.get(0), values.get(1), values.get(2), values.get(3));
@@ -165,7 +173,7 @@ final class MinigameCommandRouter {
         Map<String, String> flags = CommandParser.parse(raw);
         String command = CommandParser.getCommand(flags);
         if (command.equals("advance time")) {
-            advance(CommandParser.getIntFlag(flags, "t", 1), game::tick);
+            advance(ticks(flags), game::tick);
         } else if (command.equals("plant plant")) {
             plantZombotany(game, flags);
         } else if (command.equals("collect sun")) {
@@ -196,11 +204,27 @@ final class MinigameCommandRouter {
         }
     }
 
-    private int ticks(String raw) {
-        return CommandParser.getIntFlag(CommandParser.parse(raw), "-t", 1);
+    private Integer ticks(String raw) {
+        return ticks(CommandParser.parse(raw));
     }
 
-    private void advance(int ticks, TickAction action) {
+    private Integer ticks(Map<String, String> flags) {
+        String rawTicks = CommandParser.getFlag(flags, "t");
+        if (rawTicks == null) {
+            return 1;
+        }
+        Integer parsed = CommandParser.parseInteger(rawTicks);
+        if (parsed == null) {
+            System.out.println("Error: ticks must be a whole number.");
+            return null;
+        }
+        return parsed;
+    }
+
+    private void advance(Integer ticks, TickAction action) {
+        if (ticks == null) {
+            return;
+        }
         if (ticks <= 0) {
             System.out.println("Time must advance by a positive number of ticks.");
             return;
@@ -244,12 +268,7 @@ final class MinigameCommandRouter {
     }
 
     private int[] coordinates(String raw) {
-        if (raw == null) {
-            return null;
-        }
-        Matcher matcher = COORDINATES.matcher(raw);
-        return matcher.find() ? new int[] {Integer.parseInt(matcher.group(1)),
-            Integer.parseInt(matcher.group(2))} : null;
+        return CommandParser.parseCoordinates(raw);
     }
 
     @FunctionalInterface

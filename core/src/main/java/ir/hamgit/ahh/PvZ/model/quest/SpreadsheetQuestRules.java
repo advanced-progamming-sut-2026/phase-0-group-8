@@ -15,7 +15,6 @@ import ir.hamgit.ahh.PvZ.model.enums.Tag;
 import java.util.List;
 import java.util.Set;
 
-/** Exact completion predicates for the twenty quests supplied in quests.xlsx. */
 final class SpreadsheetQuestRules {
 
     private SpreadsheetQuestRules() {

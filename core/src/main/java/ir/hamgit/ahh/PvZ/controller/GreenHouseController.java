@@ -7,11 +7,8 @@ import ir.hamgit.ahh.PvZ.model.repository.UserRepository;
 import ir.hamgit.ahh.PvZ.view.GreenHouseMenu;
 
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public final class GreenHouseController {
-    private static final Pattern COORDINATES = Pattern.compile("(-?\\d+)\\s*,\\s*(-?\\d+)");
     private final GreenHouseMenu view;
     private final ShopController shopController;
 
@@ -61,9 +58,7 @@ public final class GreenHouseController {
         if (x != Integer.MIN_VALUE && y != Integer.MIN_VALUE) {
             return new int[] {x, y};
         }
-        Matcher matcher = COORDINATES.matcher(input);
-        return matcher.find() ? new int[] {
-            Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2))} : null;
+        return CommandParser.parseCoordinates(input);
     }
 
     private String normalizeCommand(String command) {
