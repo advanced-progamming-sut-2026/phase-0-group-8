@@ -8,7 +8,7 @@ import ir.hamgit.ahh.PvZ.model.minigame.WallnutBowlingGame;
 import ir.hamgit.ahh.PvZ.model.minigame.ZombotanyGame;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.enums.ZombieType;
-import ir.hamgit.ahh.PvZ.view.BoardView;
+import ir.hamgit.ahh.PvZ.view.MinigameView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +16,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 
 final class MinigameCommandRouter {
 
@@ -26,7 +27,7 @@ final class MinigameCommandRouter {
             System.out.println("Error: enter a minigame command.");
             return;
         }
-        if (raw != null && raw.trim().equalsIgnoreCase("help")) {
+        if (raw.trim().equalsIgnoreCase("help")) {
             showHelp(session);
             return;
         }
@@ -58,6 +59,7 @@ final class MinigameCommandRouter {
             commands = "plant plant -t <plant> -l (x,y); collect sun -l (x,y)";
         }
         System.out.println("Commands: " + commands + "; advance time -t <ticks>; show map; help");
+        MinigameView.show(session);
     }
 
     private void handleVasebreaker(VasebreakerGame game, String raw) {
@@ -71,7 +73,7 @@ final class MinigameCommandRouter {
         } else if (command.startsWith("advance time")) {
             advance(ticks(command), game::tick);
         } else if (command.startsWith("show map")) {
-            BoardView.showMap(game.getBoard());
+            MinigameView.show(game);
         } else {
             System.out.println("Unknown Vasebreaker command: " + raw);
         }
@@ -95,7 +97,7 @@ final class MinigameCommandRouter {
         } else if (command.startsWith("advance time")) {
             advance(ticks(command), game::tick);
         } else if (command.startsWith("show map")) {
-            BoardView.showMap(game.getBoard());
+            MinigameView.show(game);
         } else {
             System.out.println("Unknown Wallnut Bowling command: " + raw);
         }
@@ -108,7 +110,7 @@ final class MinigameCommandRouter {
         } else if (command.startsWith("advance time")) {
             advance(ticks(command), game::tick);
         } else if (command.startsWith("show map")) {
-            BoardView.showMap(game.getBoard());
+            MinigameView.show(game);
         } else {
             System.out.println("Unknown I-Zombie command: " + raw);
         }
@@ -134,7 +136,7 @@ final class MinigameCommandRouter {
         } else if (command.startsWith("advance time")) {
             advance(ticks(command), game::tick);
         } else if (command.startsWith("show map")) {
-            BoardView.showMap(game.getBoard());
+            MinigameView.show(game);
         } else {
             System.out.println("Unknown Beghouled command: " + raw);
         }
@@ -179,7 +181,7 @@ final class MinigameCommandRouter {
         } else if (command.equals("collect sun")) {
             collectZombotany(game, flags);
         } else if (command.equals("show map")) {
-            BoardView.showMap(game.getBoard());
+            MinigameView.show(game);
         } else {
             System.out.println("Unknown Zombotany command.");
         }
@@ -229,11 +231,17 @@ final class MinigameCommandRouter {
             System.out.println("Time must advance by a positive number of ticks.");
             return;
         }
+        if (!InputLimits.isSafeTickCount(ticks)) {
+            System.out.println("Error: ticks cannot exceed "
+                + InputLimits.MAX_TICKS_PER_COMMAND + " per command.");
+            return;
+        }
         action.apply(ticks);
     }
 
     private PlantType plantType(String raw, boolean normalize) {
         if (raw == null) {
+            System.out.println("Plant type is required.");
             return null;
         }
         try {
@@ -247,6 +255,7 @@ final class MinigameCommandRouter {
 
     private ZombieType zombieType(String raw) {
         if (raw == null) {
+            System.out.println("Zombie type is required.");
             return null;
         }
         try {

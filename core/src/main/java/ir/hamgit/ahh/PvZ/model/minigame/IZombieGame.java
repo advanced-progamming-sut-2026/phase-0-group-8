@@ -9,6 +9,7 @@ import ir.hamgit.ahh.PvZ.model.special.MinigameLevelHandler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +19,8 @@ public class IZombieGame implements MinigameSession {
     private static final int STARTING_SUN = 150;
     private static final int PRODUCER_INTERVAL_TICKS = 100;
     private static final int PRODUCER_BASE_AMOUNT = 10;
-    private static final ZombieType PRODUCER_TYPE = ZombieType.BUCKETHEAD;
+    private static final int RED_LINE_COLUMN = Board.COLUMNS - 2;
+    private static final ZombieType PRODUCER_TYPE = ZombieType.SUN_PRODUCER;
 
     private final Board board;
     private final List<ZombieType> availableZombies;
@@ -33,12 +35,26 @@ public class IZombieGame implements MinigameSession {
     public IZombieGame(List<ZombieType> availableZombies, Map<ZombieType, Integer> costs) {
         this.board = new Board(ChapterType.MINIGAME, 1, 3, null, new MinigameLevelHandler());
         this.board.enableBrainMode();
-        this.availableZombies = availableZombies;
-        this.costs = costs;
+        this.availableZombies = availableZombies == null ? List.of()
+            : availableZombies.stream().filter(type -> type != null && type != PRODUCER_TYPE)
+            .distinct().toList();
+        this.costs = copyCosts(costs);
         this.brainAvailable = new boolean[board.getRows()];
         Arrays.fill(brainAvailable, true);
         placeRandomDefenders();
         placeProducers();
+    }
+
+    private Map<ZombieType, Integer> copyCosts(Map<ZombieType, Integer> source) {
+        Map<ZombieType, Integer> result = new EnumMap<>(ZombieType.class);
+        if (source != null) {
+            source.forEach((type, cost) -> {
+                if (type != null && type != PRODUCER_TYPE && cost != null) {
+                    result.put(type, Math.max(0, cost));
+                }
+            });
+        }
+        return Map.copyOf(result);
     }
 
     private void placeRandomDefenders() {
@@ -71,8 +87,11 @@ public class IZombieGame implements MinigameSession {
             System.out.println("That zombie isn't available to you.");
             return false;
         }
-        if (x < 0 || x > board.getColumns() || lane < 0 || lane >= board.getRows()) {
-            System.out.println("That zombie position is outside the board.");
+        boolean outsidePlacementZone = x <= RED_LINE_COLUMN || x > board.getColumns()
+            || lane < 0 || lane >= board.getRows();
+        if (outsidePlacementZone) {
+            System.out.println("Place zombies to the right of the red line, at column "
+                + (RED_LINE_COLUMN + 1) + " or " + board.getColumns() + ".");
             return false;
         }
         int cost = costs.getOrDefault(type, Integer.MAX_VALUE);
@@ -89,7 +108,7 @@ public class IZombieGame implements MinigameSession {
         if (ticks <= 0) {
             return;
         }
-        for (int i = 0; i < ticks; i++) {
+        for (int i = 0; i < ticks && !isOver(); i++) {
             advanceOneTick();
         }
     }
@@ -110,9 +129,13 @@ public class IZombieGame implements MinigameSession {
         int amount = PRODUCER_BASE_AMOUNT + board.getTickCount() / (PRODUCER_INTERVAL_TICKS * 5);
         for (Zombie producer : producers) {
             if (producer.isAlive()) {
-                sunAmount += amount;
+                sunAmount = safeAdd(sunAmount, amount);
             }
         }
+    }
+
+    private int safeAdd(int current, int amount) {
+        return (int) Math.min(Integer.MAX_VALUE, (long) current + Math.max(0, amount));
     }
 
     private void detectNewlyEatenBrains() {
@@ -151,4 +174,23 @@ public class IZombieGame implements MinigameSession {
         return board;
     }
 
+    public int getSunAmount() {
+        return sunAmount;
+    }
+
+    public List<ZombieType> getAvailableZombies() {
+        return List.copyOf(availableZombies);
+    }
+
+    public int getCost(ZombieType type) {
+        return costs.getOrDefault(type, Integer.MAX_VALUE);
+    }
+
+    public int getFirstPlacementColumn() {
+        return RED_LINE_COLUMN + 1;
+    }
+
+    public boolean[] getBrainAvailability() {
+        return brainAvailable.clone();
+    }
 }

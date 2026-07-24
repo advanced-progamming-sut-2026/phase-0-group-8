@@ -8,12 +8,7 @@ import ir.hamgit.ahh.PvZ.model.Tile;
 import ir.hamgit.ahh.PvZ.model.def.PlantDef;
 import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
 
-/**
- * Renders the various {@code show ...} CLI commands. Split out of
- * {@link Board} purely to keep Board under the project's class-length
- * Checkstyle/PMD guideline (500 lines) - all of it operates on a Board it is
- * given, it holds no state of its own.
- */
+
 public final class BoardView {
 
     private BoardView() {
@@ -23,10 +18,14 @@ public final class BoardView {
         System.out.printf("Wave: %d/%d | Sun: %d | Plant food: %d | Tick: %d%n",
             board.getCurrentWave() + 1, board.getTotalWaves(), board.getSunAmount(),
             board.getPlantFoodCount(), board.getTickCount());
+        showGrid(board);
+        showLawnMowers(board);
+    }
+
+    public static void showGrid(Board board) {
         for (int r = 0; r < board.getRows(); r++) {
             printRow(board, r);
         }
-        printLawnMowers(board);
     }
 
     private static void printRow(Board board, int row) {
@@ -52,7 +51,7 @@ public final class BoardView {
         return sb.toString();
     }
 
-    private static void printLawnMowers(Board board) {
+    public static void showLawnMowers(Board board) {
         StringBuilder sb = new StringBuilder("Lawn mowers: ");
         boolean[] mowers = board.getLawnMowerAvailability();
         for (int r = 0; r < mowers.length; r++) {

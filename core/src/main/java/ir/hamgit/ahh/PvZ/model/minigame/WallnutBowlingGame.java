@@ -32,9 +32,14 @@ public class WallnutBowlingGame implements MinigameSession {
     }
 
     private void spawnInitialZombies(List<ZombieType> initialZombies) {
+        if (initialZombies == null) {
+            return;
+        }
         for (ZombieType type : initialZombies) {
-            int lane = (int) (Math.random() * board.getRows());
-            board.spawnZombieAt(type, lane, board.getColumns());
+            if (type != null) {
+                int lane = (int) (Math.random() * board.getRows());
+                board.spawnZombieAt(type, lane, board.getColumns());
+            }
         }
     }
 
@@ -67,8 +72,9 @@ public class WallnutBowlingGame implements MinigameSession {
         if (ticks <= 0) {
             return;
         }
-        for (int i = 0; i < ticks; i++) {
+        for (int i = 0; i < ticks && !isOver(); i++) {
             advanceOneTick();
+            checkWin();
         }
         checkWin();
     }
@@ -99,5 +105,17 @@ public class WallnutBowlingGame implements MinigameSession {
 
     public Board getBoard() {
         return board;
+    }
+
+    public int getRedLineColumn() {
+        return redLineColumn;
+    }
+
+    public List<BowlingBall.Kind> getQueue() {
+        return List.copyOf(queue);
+    }
+
+    public List<BowlingBall> getBalls() {
+        return List.copyOf(balls);
     }
 }

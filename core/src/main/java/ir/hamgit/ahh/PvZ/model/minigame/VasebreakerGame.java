@@ -25,6 +25,7 @@ public class VasebreakerGame implements MinigameSession {
     private final boolean[][] broken;
     private final VaseKind[][] kind;
     private final boolean[][] gargantuarVase;
+    private final boolean[][] plantVase;
     private final PlantType[][] seedType;
     private final int[][] seedTicksRemaining;
     private final List<PlantType> heldSeeds = new ArrayList<>();
@@ -37,10 +38,11 @@ public class VasebreakerGame implements MinigameSession {
         this.broken = new boolean[rows][cols];
         this.kind = new VaseKind[rows][cols];
         this.gargantuarVase = new boolean[rows][cols];
+        this.plantVase = new boolean[rows][cols];
         this.seedType = new PlantType[rows][cols];
         this.seedTicksRemaining = new int[rows][cols];
         randomizeVases();
-        forceVaseKind(plantVasePositions, VaseKind.SEED_PACKET);
+        forcePlantVases(plantVasePositions);
         forceGargantuarVases(gargantuarVasePositions);
     }
 
@@ -54,17 +56,32 @@ public class VasebreakerGame implements MinigameSession {
         }
     }
 
-    private void forceVaseKind(List<int[]> positions, VaseKind forced) {
+    private void forcePlantVases(List<int[]> positions) {
+        if (positions == null) {
+            return;
+        }
         for (int[] pos : positions) {
-            kind[pos[1]][pos[0]] = forced;
+            if (validPosition(pos)) {
+                kind[pos[1]][pos[0]] = VaseKind.SEED_PACKET;
+                plantVase[pos[1]][pos[0]] = true;
+            }
         }
     }
 
     private void forceGargantuarVases(List<int[]> positions) {
-        for (int[] pos : positions) {
-            kind[pos[1]][pos[0]] = VaseKind.ZOMBIE;
-            gargantuarVase[pos[1]][pos[0]] = true;
+        if (positions == null) {
+            return;
         }
+        for (int[] pos : positions) {
+            if (validPosition(pos)) {
+                kind[pos[1]][pos[0]] = VaseKind.ZOMBIE;
+                gargantuarVase[pos[1]][pos[0]] = true;
+            }
+        }
+    }
+
+    private boolean validPosition(int[] position) {
+        return position != null && position.length >= 2 && inBounds(position[0], position[1]);
     }
 
     public void breakVase(int x, int lane) {
@@ -127,9 +144,10 @@ public class VasebreakerGame implements MinigameSession {
         if (ticks <= 0) {
             return;
         }
-        for (int i = 0; i < ticks; i++) {
+        for (int i = 0; i < ticks && !isOver(); i++) {
             tickSeedExpiry();
             board.advanceTime(1);
+            checkWin();
         }
         checkWin();
     }
@@ -170,5 +188,19 @@ public class VasebreakerGame implements MinigameSession {
 
     public Board getBoard() {
         return board;
+    }
+
+    public String getVaseMarker(int x, int lane) {
+        if (!inBounds(x, lane)) {
+            return "";
+        }
+        if (!broken[lane][x]) {
+            return gargantuarVase[lane][x] ? "G" : plantVase[lane][x] ? "P" : "?";
+        }
+        return seedType[lane][x] == null ? "." : "S";
+    }
+
+    public List<PlantType> getHeldSeeds() {
+        return List.copyOf(heldSeeds);
     }
 }

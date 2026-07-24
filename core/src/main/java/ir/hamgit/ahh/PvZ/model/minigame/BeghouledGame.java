@@ -21,6 +21,8 @@ public class BeghouledGame implements MinigameSession {
     private static final int CASCADE_BONUS = 50;
     private static final int TOTAL_WAVES = 9999;
     private static final int MIN_MATCH_LENGTH = 3;
+    private static final int MAX_BOARD_GENERATION_ATTEMPTS = 100;
+    private static final int MAX_CASCADE_STEPS = 100;
 
     private final Board board;
     private final PlantType[][] grid;
@@ -39,7 +41,7 @@ public class BeghouledGame implements MinigameSession {
         handler.setGame(this);
         this.grid = new PlantType[board.getRows()][board.getColumns()];
         this.crater = new boolean[board.getRows()][board.getColumns()];
-        fillEntireBoardRandomly();
+        fillPlayableBoard();
     }
 
     private static Map<PlantType, PlantType> buildUpgradeTable() {
@@ -68,14 +70,60 @@ public class BeghouledGame implements MinigameSession {
     // Board setup
     // ------------------------------------------------------------------
 
-    private void fillEntireBoardRandomly() {
-        for (int r = 0; r < board.getRows(); r++) {
-            for (int c = 0; c < board.getColumns(); c++) {
-                if (!crater[r][c]) {
-                    placeRandomPlantAt(r, c);
-                }
+    private void fillPlayableBoard() {
+        clearCraters();
+        for (int attempt = 0; attempt < MAX_BOARD_GENERATION_ATTEMPTS; attempt++) {
+            fillWithoutInitialMatches();
+            if (!hasNoPossibleMove()) {
+                return;
             }
         }
+        fillFallbackBoard();
+    }
+
+    private void clearCraters() {
+        for (boolean[] row : crater) {
+            java.util.Arrays.fill(row, false);
+        }
+    }
+
+    private void fillWithoutInitialMatches() {
+        for (int row = 0; row < board.getRows(); row++) {
+            for (int column = 0; column < board.getColumns(); column++) {
+                placeAt(row, column, pickInitialType(row, column));
+            }
+        }
+    }
+
+    private PlantType pickInitialType(int row, int column) {
+        int offset = (int) (Math.random() * PALETTE.size());
+        for (int index = 0; index < PALETTE.size(); index++) {
+            PlantType candidate = PALETTE.get((offset + index) % PALETTE.size());
+            if (!createsInitialMatch(row, column, candidate)) {
+                return candidate;
+            }
+        }
+        return PALETTE.get(offset);
+    }
+
+    private boolean createsInitialMatch(int row, int column, PlantType type) {
+        boolean horizontal = column >= 2 && grid[row][column - 1] == type
+            && grid[row][column - 2] == type;
+        boolean vertical = row >= 2 && grid[row - 1][column] == type
+            && grid[row - 2][column] == type;
+        return horizontal || vertical;
+    }
+
+    private void fillFallbackBoard() {
+        for (int row = 0; row < board.getRows(); row++) {
+            for (int column = 0; column < board.getColumns(); column++) {
+                placeAt(row, column, PALETTE.get((row + column) % PALETTE.size()));
+            }
+        }
+        placeAt(0, 0, PALETTE.get(0));
+        placeAt(0, 1, PALETTE.get(1));
+        placeAt(0, 2, PALETTE.get(0));
+        placeAt(1, 1, PALETTE.get(0));
     }
 
     private void placeRandomPlantAt(int row, int col) {
@@ -130,27 +178,36 @@ public class BeghouledGame implements MinigameSession {
     private void resolveCascadesUntilStable() {
         boolean cascade = false;
         List<List<int[]>> matches = findMatches();
-        while (!matches.isEmpty()) {
+        int steps = 0;
+        while (!matches.isEmpty() && steps++ < MAX_CASCADE_STEPS) {
             rewardMatches(matches, cascade);
             removeMatches(matches);
             dropAndRefill();
             cascade = true;
             matches = findMatches();
         }
+        if (!matches.isEmpty()) {
+            System.out.println("Cascade safety limit reached; the Beghouled board was reset.");
+            fillPlayableBoard();
+        }
         if (matchesMade >= targetMatches) {
             triggerWin();
         } else if (hasNoPossibleMove()) {
             System.out.println("No moves left - the board resets!");
-            fillEntireBoardRandomly();
+            fillPlayableBoard();
         }
     }
 
     private void rewardMatches(List<List<int[]>> matches, boolean cascade) {
         for (List<int[]> group : matches) {
             int reward = BASE_MATCH_REWARD * (group.size() - MIN_MATCH_LENGTH + 1) + (cascade ? CASCADE_BONUS : 0);
-            sunAmount += reward;
-            matchesMade++;
+            sunAmount = saturatingAdd(sunAmount, reward);
+            matchesMade = saturatingAdd(matchesMade, 1);
         }
+    }
+
+    private int saturatingAdd(int current, int amount) {
+        return (int) Math.min(Integer.MAX_VALUE, (long) current + Math.max(0, amount));
     }
 
     private void removeMatches(List<List<int[]>> matches) {
@@ -218,17 +275,23 @@ public class BeghouledGame implements MinigameSession {
     }
 
     private void dropColumn(int col) {
-        int writeRow = board.getRows() - 1;
+        int writeRow = nextOpenRow(board.getRows() - 1, col);
         for (int r = board.getRows() - 1; r >= 0; r--) {
-            if (crater[r][col]) {
+            if (crater[r][col] || grid[r][col] == null) {
                 continue;
             }
-            if (grid[r][col] != null) {
-                moveIfNeeded(r, col, writeRow);
-                writeRow--;
-            }
+            moveIfNeeded(r, col, writeRow);
+            writeRow = nextOpenRow(writeRow - 1, col);
         }
         fillAboveWithNewPlants(writeRow, col);
+    }
+
+    private int nextOpenRow(int row, int col) {
+        int result = row;
+        while (result >= 0 && crater[result][col]) {
+            result--;
+        }
+        return result;
     }
 
     private void moveIfNeeded(int fromRow, int col, int toRow) {
@@ -275,6 +338,9 @@ public class BeghouledGame implements MinigameSession {
 
     /** Called by {@link BeghouledLevelHandler} whenever a zombie eats a plant on this grid. */
     public void onPlantEatenByZombie(int x, int lane) {
+        if (!inBounds(x, lane)) {
+            return;
+        }
         crater[lane][x] = true;
         grid[lane][x] = null;
     }
@@ -323,4 +389,23 @@ public class BeghouledGame implements MinigameSession {
         return board;
     }
 
+    public int getSunAmount() {
+        return sunAmount;
+    }
+
+    public int getMatchesMade() {
+        return matchesMade;
+    }
+
+    public int getTargetMatches() {
+        return targetMatches;
+    }
+
+    public boolean isCrater(int x, int lane) {
+        return inBounds(x, lane) && crater[lane][x];
+    }
+
+    public PlantType getPlantTypeAt(int x, int lane) {
+        return inBounds(x, lane) ? grid[lane][x] : null;
+    }
 }

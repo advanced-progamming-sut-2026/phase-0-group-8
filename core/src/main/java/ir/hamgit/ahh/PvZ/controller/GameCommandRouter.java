@@ -54,6 +54,11 @@ final class GameCommandRouter {
             System.out.println("Error: ticks must be a whole number.");
             return;
         }
+        if (!InputLimits.isSafeTickCount(ticks)) {
+            System.out.println("Error: ticks must be between 1 and "
+                + InputLimits.MAX_TICKS_PER_COMMAND + ".");
+            return;
+        }
         controller.advanceTime(ticks);
     }
 
@@ -93,6 +98,8 @@ final class GameCommandRouter {
             board.cheatReleaseNuke();
         } else if (command.contains("add")) {
             addResource(command, flags, board);
+        } else {
+            System.out.println("Error: unknown cheat command.");
         }
     }
 
@@ -105,6 +112,12 @@ final class GameCommandRouter {
         }
         if (position == null) {
             System.out.println("Error: coordinates are required as x,y.");
+            return;
+        }
+        boolean outsideBoard = position[0] < 0 || position[0] > board.getColumns()
+            || position[1] < 0 || position[1] >= board.getRows();
+        if (outsideBoard) {
+            System.out.println("Error: zombie coordinates are outside the board.");
             return;
         }
         board.cheatSpawnZombie(type, position[0], position[1]);
@@ -123,6 +136,8 @@ final class GameCommandRouter {
             controller.addPersistentCurrency(amount, false);
         } else if (command.contains("diamond")) {
             controller.addPersistentCurrency(amount, true);
+        } else {
+            System.out.println("Error: resource must be sun, coin, or diamond.");
         }
     }
 

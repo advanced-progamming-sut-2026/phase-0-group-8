@@ -98,4 +98,7 @@ public class BowlingBall {
         return lane;
     }
 
+    public Kind getKind() {
+        return kind;
+    }
 }

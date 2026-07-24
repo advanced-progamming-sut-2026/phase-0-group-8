@@ -41,6 +41,9 @@ public class GameController {
         this.currentUser = user;
     }
 
+    public void startGame(String chapterName) {
+        startGame(chapterName, 1);
+    }
 
     public void startGame(String chapterName, int levelIndex) {
         scoreMode = false;
@@ -292,12 +295,13 @@ public class GameController {
     }
 
     private int calculateScore() {
-        int killScore = board.getZombiesKilled() * 100;
-        int speedScore = Math.max(0, 3000 - board.getTickCount());
-        int economyScore = board.getSunAmount() * 2;
-        int survivalScore = board.getPlantsRemaining() * 50;
-        int defenseScore = board.getMowersRemaining() * 250;
-        return killScore + speedScore + economyScore + survivalScore + defenseScore;
+        long killScore = (long) board.getZombiesKilled() * 100;
+        long speedScore = Math.max(0L, 3000L - board.getTickCount());
+        long economyScore = (long) board.getSunAmount() * 2;
+        long survivalScore = (long) board.getPlantsRemaining() * 50;
+        long defenseScore = (long) board.getMowersRemaining() * 250;
+        long total = killScore + speedScore + economyScore + survivalScore + defenseScore;
+        return (int) Math.min(Integer.MAX_VALUE, total);
     }
 
     public void advanceTime(int ticks) {
@@ -476,6 +480,10 @@ public class GameController {
 
     public Board getBoard() {
         return board;
+    }
+
+    public Set<PlantType> getSelectedPlants() {
+        return selectedPlants;
     }
 
     public void setCurrentUser(User user) {
