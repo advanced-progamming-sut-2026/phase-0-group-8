@@ -152,7 +152,32 @@ public final class QuestService {
 
     static int variable(User user, String id) {
         prepareDaily(user);
-        return user.getQuestProgress(variableKey(id));
+        String key = variableKey(id);
+        int stored = user.getQuestProgress(key);
+        int repaired = repairVariable(id, stored);
+        if (stored != repaired) {
+            user.updateQuestProgress(key, repaired);
+        }
+        return repaired;
+    }
+
+    private static int repairVariable(String id, int value) {
+        return switch (id) {
+            case "daily_sun_catcher" -> clamp(value, 3000, 5000);
+            case "chapter_hunter" -> clamp(value, 1, 4);
+            case "professional_unlocker" -> clamp(value, 1, PlantType.values().length);
+            case "economic_plant_eater" -> clamp(value, 1, 6);
+            case "family_massacre", "limited_bloom" ->
+                clamp(value, 1, PlantFamily.values().length);
+            case "one_less_column" -> clamp(value, 1, Board.COLUMNS);
+            case "undefended_row", "undefended_cross" -> clamp(value, 1, Board.ROWS);
+            case "mowing_time" -> clamp(value, 10, 50);
+            default -> Math.max(0, value);
+        };
+    }
+
+    private static int clamp(int value, int minimum, int maximum) {
+        return Math.max(minimum, Math.min(maximum, value));
     }
 
     public static void recordLevelCompletion(User user) {
@@ -174,7 +199,7 @@ public final class QuestService {
         increment(user, "repeat_games", 1);
     }
 
-
+    /** Evaluates all twenty spreadsheet quests from one finished session. */
     public static void recordLevelOutcome(User user, Board board, Set<PlantType> selected,
                                           ChapterType chapter, boolean won) {
         prepareDaily(user);
@@ -244,8 +269,10 @@ public final class QuestService {
             return false;
         }
         grantReward(user, quest);
-        user.updateQuestProgress(completionKey(quest.id()),
-            user.getQuestProgress(completionKey(quest.id())) + 1);
+        String completion = completionKey(quest.id());
+        int completed = user.getQuestProgress(completion);
+        user.updateQuestProgress(completion,
+            completed == Integer.MAX_VALUE ? completed : completed + 1);
         user.updateQuestProgress(claimKey(questId), 1);
         if (quest.category() == Category.REPEATABLE) {
             user.updateQuestProgress(questId, 0);
@@ -295,7 +322,8 @@ public final class QuestService {
     static void increment(User user, String id, int amount) {
         Quest quest = find(id);
         if (quest != null && amount > 0) {
-            int progress = Math.min(targetFor(user, quest), user.getQuestProgress(id) + amount);
+            long updated = (long) user.getQuestProgress(id) + amount;
+            int progress = (int) Math.min(targetFor(user, quest), updated);
             user.updateQuestProgress(id, progress);
         }
     }
@@ -319,14 +347,14 @@ public final class QuestService {
     }
 
     public static int completedCount(User user, boolean daily) {
-        int result = 0;
+        long result = 0;
         for (Quest quest : QUESTS) {
             if ((quest.category() == Category.DAILY) == daily) {
                 int recorded = user.getQuestProgress(completionKey(quest.id()));
                 result += recorded > 0 ? recorded : isClaimed(user, quest.id()) ? 1 : 0;
             }
         }
-        return result;
+        return (int) Math.min(Integer.MAX_VALUE, result);
     }
 
     private static String variableKey(String id) {

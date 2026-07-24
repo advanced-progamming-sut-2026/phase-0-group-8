@@ -33,15 +33,16 @@ public final class UserRepository {
             if (saved instanceof Map<?, ?> map) {
                 restoreUsers(map);
             }
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException | RuntimeException e) {
             System.out.println("Warning: could not load users file; starting with an empty repository.");
         }
     }
 
     private static void restoreUsers(Map<?, ?> saved) {
         for (Map.Entry<?, ?> entry : saved.entrySet()) {
-            if (entry.getKey() instanceof String key && entry.getValue() instanceof User user) {
-                USERS.put(key, user);
+            if (entry.getKey() instanceof String && entry.getValue() instanceof User user
+                && user.getUsername() != null && !user.getUsername().isBlank()) {
+                USERS.put(user.getUsername(), user);
                 if (loggedInUser == null && user.isStayLoggedIn()) {
                     loggedInUser = user;
                 }
@@ -61,6 +62,11 @@ public final class UserRepository {
         try (ObjectOutputStream output = new ObjectOutputStream(Files.newOutputStream(tempPath))) {
             output.writeObject(new LinkedHashMap<>(USERS));
             output.flush();
+        } catch (IOException e) {
+            System.out.println("Warning: could not save users file.");
+            return;
+        }
+        try {
             moveTemporaryFile(tempPath, filePath);
         } catch (IOException e) {
             System.out.println("Warning: could not save users file.");
@@ -92,6 +98,9 @@ public final class UserRepository {
     }
 
     public static boolean register(User user) {
+        if (user == null || user.getUsername() == null || user.getUsername().isBlank()) {
+            return false;
+        }
         if (USERS.containsKey(user.getUsername())) {
             return false;
         }
@@ -102,7 +111,7 @@ public final class UserRepository {
 
     public static User login(String username, String passwordHash, boolean stayLoggedIn) {
         User user = USERS.get(username);
-        if (user == null || !user.getPasswordHash().equals(passwordHash)) {
+        if (user == null || passwordHash == null || !passwordHash.equals(user.getPasswordHash())) {
             return null;
         }
         clearOtherAutoLogins(user);
@@ -129,6 +138,9 @@ public final class UserRepository {
     }
 
     public static void updateUser(User user) {
+        if (user == null || user.getUsername() == null || user.getUsername().isBlank()) {
+            return;
+        }
         USERS.entrySet().removeIf(entry -> entry.getValue() == user
             && !entry.getKey().equals(user.getUsername()));
         USERS.put(user.getUsername(), user);
@@ -136,7 +148,8 @@ public final class UserRepository {
     }
 
     public static boolean renameUser(User user, String newUsername) {
-        if (USERS.containsKey(newUsername)) {
+        if (user == null || newUsername == null || newUsername.isBlank()
+            || USERS.containsKey(newUsername)) {
             return false;
         }
         USERS.remove(user.getUsername());

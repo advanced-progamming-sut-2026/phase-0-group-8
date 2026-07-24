@@ -59,14 +59,15 @@ public final class PlantAbilityProfile {
     }
 
     public int getDamageAt(int index, int fallback) {
-        return damageCycle.length == 0 ? fallback : damageCycle[index % damageCycle.length];
+        return damageCycle.length == 0 ? fallback
+            : damageCycle[Math.floorMod(index, damageCycle.length)];
     }
 
     public int getIntervalAt(int index) {
         if (intervalCycle.length == 0) {
             return actionIntervalTicks;
         }
-        return intervalCycle[index % intervalCycle.length];
+        return intervalCycle[Math.floorMod(index, intervalCycle.length)];
     }
 
     public int getCycleLength() {

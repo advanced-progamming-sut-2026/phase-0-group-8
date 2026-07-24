@@ -15,6 +15,7 @@ public class Plant {
     private static final double DOUBLE_SUN_CHANCE = 0.25;
     private static final int MAX_ICE_LAYERS = 3;
     private static final int MAX_STACKED_HEADS = 5;
+    private static final int MAX_LEVEL = 4;
 
     private final PlantDef def;
     private final int x;
@@ -227,6 +228,9 @@ public class Plant {
     }
 
     public void upgrade() {
+        if (level >= MAX_LEVEL) {
+            return;
+        }
         level++;
         currentHp += PlantLevelEffects.sum(def.getType(), level, "HP +")
             - PlantLevelEffects.sum(def.getType(), level - 1, "HP +");
@@ -234,7 +238,8 @@ public class Plant {
     }
 
     public void setLevel(int targetLevel) {
-        while (level < Math.max(1, targetLevel)) {
+        int safeLevel = Math.max(1, Math.min(MAX_LEVEL, targetLevel));
+        while (level < safeLevel) {
             upgrade();
         }
     }
