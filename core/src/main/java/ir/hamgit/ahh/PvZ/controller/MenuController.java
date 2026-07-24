@@ -48,10 +48,18 @@ public class MenuController {
     }
 
     public void run() {
-        System.out.println("Welcome to Plants vs Zombies!");
-        while (running && scanner.hasNextLine()) {
+        System.out.println("Welcome to Plants vs Zombies 2!");
+        while (running) {
             System.out.print("> ");
+            System.out.flush();
+            if (!scanner.hasNextLine()) {
+                break;
+            }
             String input = scanner.nextLine();
+            if (input.length() > InputLimits.MAX_COMMAND_LENGTH) {
+                System.out.println("Error: command is too long.");
+                continue;
+            }
             handleCommandSafely(input);
         }
     }
