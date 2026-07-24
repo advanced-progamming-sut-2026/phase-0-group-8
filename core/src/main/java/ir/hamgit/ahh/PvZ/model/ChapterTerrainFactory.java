@@ -47,8 +47,9 @@ public final class ChapterTerrainFactory {
     }
 
     private static void scatterGraves(Tile[][] tiles, int rows, int columns, boolean darkAges) {
+        int firstGraveColumn = Math.min(NECROMANCY_MIN_COLUMN, columns);
         for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < columns; c++) {
+            for (int c = firstGraveColumn; c < columns; c++) {
                 if (Math.random() < GRAVE_CHANCE_EGYPT) {
                     tiles[r][c] = new Tile(TileType.GRAVE);
                     if (darkAges) {
@@ -80,7 +81,7 @@ public final class ChapterTerrainFactory {
         }
     }
 
-    /** Right-most third of the board starts as water; Board.tickTide() can vary this later. */
+    
     private static void floodRightColumns(Tile[][] tiles, int rows, int columns) {
         int waterStart = columns - Math.max(1, columns / 3);
         for (int r = 0; r < rows; r++) {

@@ -31,6 +31,7 @@ public class Board {
     private int tickCount;
     private final ChapterType chapter;
     private final int difficulty;
+    private final SpecialLevelType specialLevelType;
     private final SpecialLevelHandler specialLevelHandler;
     private final WaveManager waveManager;
     private final ZombieAbilitySupport zombieAbilities = new ZombieAbilitySupport();
@@ -44,6 +45,7 @@ public class Board {
         this.chapter = chapter;
         this.chapterMechanics = new ChapterMechanics(chapter);
         this.difficulty = difficulty;
+        this.specialLevelType = specialLevelType;
         this.specialLevelHandler = specialLevelHandler != null ? specialLevelHandler : new NormalLevelHandler();
         this.tiles = ChapterTerrainFactory.buildTiles(chapter, ROWS, COLUMNS, difficulty);
         this.lawnMowers = new boolean[ROWS];
@@ -52,6 +54,7 @@ public class Board {
         this.sunEconomy = new SunEconomy(getDifficultySpeedMultiplier());
         this.specialLevelHandler.onLevelStart(this);
     }
+
 
     public void advanceTime(int ticks) {
         for (int i = 0; i < ticks && !levelOps.isGameOver(); i++) {
@@ -66,6 +69,7 @@ public class Board {
         tickZombies();
         tickPlants();
         tickProjectiles();
+        combatOps.handleZombieDeaths(this);
         tickSuns();
         chapterMechanics.tick(this);
         checkWaveAdvance();
@@ -75,11 +79,8 @@ public class Board {
     private void tickZombies() {
         for (Zombie z : new ArrayList<>(zombies)) {
             z.tick(this);
-            if (!z.isAlive() && !z.isDeathHandled()) {
-                z.die(this);
-            }
         }
-        zombies.removeIf(z -> !z.isAlive());
+        combatOps.handleZombieDeaths(this);
     }
 
     private void tickPlants() {
@@ -104,6 +105,7 @@ public class Board {
     private void tickSuns() {
         sunEconomy.tickSuns();
     }
+
 
     private void tickSunDrop() {
         sunEconomy.tickDrop(this);
@@ -131,7 +133,6 @@ public class Board {
         sunEconomy.addSun(amount);
     }
 
-    /** Direct override, used for special levels with a fixed starting pool (Plant What You Get). */
     public void setSunAmount(int amount) {
         sunEconomy.setSunAmount(amount);
     }
@@ -144,6 +145,9 @@ public class Board {
         return plantingOps.plantPlant(this, type, x, lane);
     }
 
+    public boolean plantPlant(PlantType type, int x, int lane, int adjustedCost) {
+        return plantingOps.plantPlant(this, type, x, lane, adjustedCost, 1);
+    }
 
     public boolean plantPlant(PlantType type, int x, int lane, int adjustedCost, int level) {
         return plantingOps.plantPlant(this, type, x, lane, adjustedCost, level);
@@ -186,6 +190,18 @@ public class Board {
     }
 
 
+    public boolean hasZombieInLaneAhead(int plantX, int lane, int range) {
+        return combatOps.hasZombieInLaneAhead(this, plantX, lane, range);
+    }
+
+    public boolean hasAdjacentZombie(int plantX, int lane) {
+        return combatOps.hasAdjacentZombie(this, plantX, lane);
+    }
+
+    public Zombie findNearestZombieAheadOfProjectile(int lane, double projectileX) {
+        return combatOps.findNearestZombieAheadOfProjectile(this, lane, projectileX);
+    }
+
     public Zombie getNearestEnemyZombieInFront(Zombie hypnotized) {
         return combatOps.getNearestEnemyZombieInFront(this, hypnotized);
     }
@@ -194,6 +210,9 @@ public class Board {
         return combatOps.getPlantInFrontOf(this, zombie);
     }
 
+    public void spawnProjectile(Plant source) {
+        combatOps.spawnProjectile(this, source);
+    }
 
     public void dealAreaDamageToZombies(int centerX, int centerLane, int radius, int damage) {
         combatOps.dealAreaDamageToZombies(this, centerX, centerLane, radius, damage);
@@ -211,6 +230,7 @@ public class Board {
         combatOps.markDeathHandledIfNeeded(this, zombie);
     }
 
+    // Zombie-specific ability hooks (called from Zombie's per-type methods)
 
     public boolean hasPlantWithinTiles(int lane, double x, int range) {
         return zombieAbilities.hasPlantWithinTiles(this, lane, x, range);
@@ -291,7 +311,7 @@ public class Board {
 
     public void cheatReleaseNuke() {
         for (Zombie z : zombies) {
-            z.takeDamage(Integer.MAX_VALUE / 2, true);
+            z.forceKill();
         }
     }
 
@@ -299,7 +319,6 @@ public class Board {
         waveManager.checkAdvance(this);
     }
 
-    /** Public entry for the "start zombie waves" command (Plant What You Get). */
     public void startZombieWaves() {
         if (specialLevelHandler instanceof PlantWhatYouGetLevel pwyg) {
             pwyg.startWaves();
@@ -354,6 +373,7 @@ public class Board {
         return currencyLedger.drainPotsEarned();
     }
 
+    // Accessors
     boolean isInBounds(int x, int lane) {
         return x >= 0 && x < COLUMNS && lane >= 0 && lane < ROWS;
     }
@@ -438,6 +458,9 @@ public class Board {
         return chapter;
     }
 
+    public SpecialLevelType getSpecialLevelType() {
+        return specialLevelType;
+    }
 
     public SpecialLevelHandler getSpecialLevelHandler() {
         return specialLevelHandler;
