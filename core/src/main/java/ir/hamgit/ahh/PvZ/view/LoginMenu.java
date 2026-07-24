@@ -29,7 +29,7 @@ public class LoginMenu {
             return handleNewPassword(flags, command);
         }
         if (command.equals("login")) {
-            return handleLogin(flags, input);
+            return handleLogin(flags);
         } else if (command.equals("forget password")) {
             handleForgetPassword(flags);
         } else {
@@ -38,10 +38,10 @@ public class LoginMenu {
         return MenuState.LOGIN;
     }
 
-    private MenuState handleLogin(Map<String, String> flags, String rawInput) {
+    private MenuState handleLogin(Map<String, String> flags) {
         String username = CommandParser.getFlag(flags, "u");
         String password = CommandParser.getFlag(flags, "p");
-        boolean stayLoggedIn = rawInput.contains("-stay-logged-in");
+        boolean stayLoggedIn = CommandParser.getFlag(flags, "stay-logged-in") != null;
         if (username == null || password == null) {
             System.out.println("Error: usage is login -u <username> -p <password> [-stay-logged-in]");
             return MenuState.LOGIN;
@@ -52,7 +52,7 @@ public class LoginMenu {
             return MenuState.LOGIN;
         }
         String passwordHash = Validator.hashSha256(password);
-        if (!knownUser.getPasswordHash().equals(passwordHash)) {
+        if (!passwordHash.equals(knownUser.getPasswordHash())) {
             System.out.println("Error: incorrect password.");
             return MenuState.LOGIN;
         }
@@ -73,7 +73,7 @@ public class LoginMenu {
             return;
         }
         User user = UserRepository.getUser(username);
-        if (user == null || !user.getEmail().equals(email)) {
+        if (user == null || !email.equals(user.getEmail())) {
             System.out.println("Error: no matching account found.");
             return;
         }
