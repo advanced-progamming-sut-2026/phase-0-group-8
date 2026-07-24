@@ -8,6 +8,7 @@ import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
 import ir.hamgit.ahh.PvZ.model.enums.BehaviorType;
 import ir.hamgit.ahh.PvZ.model.enums.Tag;
+import ir.hamgit.ahh.PvZ.model.enums.TileType;
 
 
 
@@ -24,28 +25,41 @@ public class SaveOurSeedsLevel extends SpecialLevelHandler {
         this.protectedCount = protectedCount;
     }
 
-    private static final int MAX_ATTEMPTS_PER_PLANT = 30;
-
     @Override
     public void onLevelStart(Board board) {
         List<PlantType> pool = new ArrayList<>(PlantRegistry.getAll().stream()
             .filter(this::isSuitableProtectedPlant).map(PlantDef::getType).toList());
-        for (int i = 0; i < protectedCount && !pool.isEmpty(); i++) {
-            placeOneProtectedPlant(board, pool);
+        List<int[]> positions = safePositions(board);
+        int count = Math.min(protectedCount, positions.size());
+        for (int i = 0; i < count && !pool.isEmpty(); i++) {
+            int positionIndex = (int) (Math.random() * positions.size());
+            placeProtectedPlant(board, pool, positions.remove(positionIndex));
         }
     }
 
-    private void placeOneProtectedPlant(Board board, List<PlantType> pool) {
-        for (int attempt = 0; attempt < MAX_ATTEMPTS_PER_PLANT; attempt++) {
-            PlantType type = pool.get((int) (Math.random() * pool.size()));
-            int safeColumns = Math.max(1, board.getColumns() / 2);
-            int x = (int) (Math.random() * safeColumns);
-            int lane = (int) (Math.random() * board.getRows());
-            if (board.plantForFree(type, x, lane)) {
-                protectedPlants.add(board.getTileAt(x, lane).getPlant());
-                System.out.printf("A seed to protect: %s at (%d, %d)%n", type, x, lane);
-                return;
+    private List<int[]> safePositions(Board board) {
+        List<int[]> positions = new ArrayList<>();
+        int safeColumns = Math.max(1, board.getColumns() / 2);
+        for (int lane = 0; lane < board.getRows(); lane++) {
+            for (int x = 0; x < safeColumns; x++) {
+                positions.add(new int[] {x, lane});
             }
+        }
+        return positions;
+    }
+
+    private void placeProtectedPlant(Board board, List<PlantType> pool, int[] position) {
+        PlantType type = pool.get((int) (Math.random() * pool.size()));
+        int x = position[0];
+        int lane = position[1];
+        boolean planted = board.plantForFree(type, x, lane);
+        if (!planted) {
+            board.getTileAt(x, lane).setType(TileType.NORMAL);
+            planted = board.plantForFree(type, x, lane);
+        }
+        if (planted) {
+            protectedPlants.add(board.getTileAt(x, lane).getPlant());
+            System.out.printf("A seed to protect: %s at (%d, %d)%n", type, x, lane);
         }
     }
 
@@ -70,6 +84,7 @@ public class SaveOurSeedsLevel extends SpecialLevelHandler {
             && !def.hasBehavior(BehaviorType.CONTACT_FREEZE)
             && !def.hasBehavior(BehaviorType.AQUATIC_INSTANT_KILL)
             && !def.hasBehavior(BehaviorType.LIMITED_LIFESPAN)
+            && !def.hasBehavior(BehaviorType.COPY_PLANT)
             && !def.hasTag(Tag.TRAP)
             && !def.isCanPlantOnWater();
     }
