@@ -84,19 +84,22 @@ public class User implements java.io.Serializable {
     }
 
     private void repairDeserializedState() {
-        unlockedPlants = unlockedPlants == null ? new ArrayList<>() : unlockedPlants;
-        seenZombies = seenZombies == null ? new HashSet<>() : seenZombies;
-        unreadNews = unreadNews == null ? new ArrayList<>() : unreadNews;
-        allNews = allNews == null ? new ArrayList<>() : allNews;
-        questProgress = questProgress == null ? new HashMap<>() : questProgress;
-        plantSeedPackets = plantSeedPackets == null ? new HashMap<>() : plantSeedPackets;
-        plantLevels = plantLevels == null ? new HashMap<>() : plantLevels;
-        plantBoosts = plantBoosts == null ? new HashMap<>() : plantBoosts;
-        minigamesCompleted = minigamesCompleted == null ? new HashMap<>() : minigamesCompleted;
-        adventureProgress = adventureProgress == null ? new HashMap<>() : adventureProgress;
+        unlockedPlants = SaveStateSanitizer.list(unlockedPlants);
+        seenZombies = SaveStateSanitizer.set(seenZombies);
+        unreadNews = SaveStateSanitizer.list(unreadNews);
+        allNews = SaveStateSanitizer.list(allNews);
+        questProgress = SaveStateSanitizer.nonNegativeMap(questProgress);
+        plantSeedPackets = SaveStateSanitizer.nonNegativeMap(plantSeedPackets);
+        plantLevels = SaveStateSanitizer.boundedMap(plantLevels, 1, 4);
+        plantBoosts = SaveStateSanitizer.booleanMap(plantBoosts);
+        minigamesCompleted = SaveStateSanitizer.nonNegativeMap(minigamesCompleted);
+        adventureProgress = SaveStateSanitizer.boundedMap(adventureProgress, 0, 4);
         difficulty = difficulty < 1 || difficulty > 5 ? 3 : difficulty;
         coins = Math.max(0, coins);
         diamonds = Math.max(0, diamonds);
+        gamesPlayed = Math.max(0, gamesPlayed);
+        levelsCompleted = Math.max(0, levelsCompleted);
+        bestScoreMode = Math.max(0, bestScoreMode);
         storedPlantFood = Math.max(0, Math.min(3, storedPlantFood));
         dailyOfferPlant = dailyOfferPlant == null ? PlantType.PEASHOOTER.name() : dailyOfferPlant;
         repairGreenhouse();
@@ -214,7 +217,7 @@ public class User implements java.io.Serializable {
     }
 
     public void incrementGamesPlayed() {
-        gamesPlayed++;
+        gamesPlayed = gamesPlayed == Integer.MAX_VALUE ? gamesPlayed : gamesPlayed + 1;
     }
 
     public int getLevelsCompleted() {
@@ -222,7 +225,7 @@ public class User implements java.io.Serializable {
     }
 
     public void incrementLevelsCompleted() {
-        levelsCompleted++;
+        levelsCompleted = levelsCompleted == Integer.MAX_VALUE ? levelsCompleted : levelsCompleted + 1;
     }
 
     public int getBestScoreMode() {
@@ -352,11 +355,13 @@ public class User implements java.io.Serializable {
     }
 
     public void recordMinigameCompletion(String name) {
-        minigamesCompleted.put(name, minigamesCompleted.getOrDefault(name, 0) + 1);
+        int current = minigamesCompleted.getOrDefault(name, 0);
+        minigamesCompleted.put(name, current == Integer.MAX_VALUE ? current : current + 1);
     }
 
     public int getTotalMinigamesCompleted() {
-        return minigamesCompleted.values().stream().mapToInt(Integer::intValue).sum();
+        long total = minigamesCompleted.values().stream().mapToLong(Integer::longValue).sum();
+        return (int) Math.min(Integer.MAX_VALUE, total);
     }
 
     public int getDifficulty() {
@@ -472,10 +477,11 @@ public class User implements java.io.Serializable {
     }
 
     public boolean addStoredPlantFood(int amount) {
-        if (amount <= 0 || storedPlantFood + amount > 3) {
+        long updated = (long) storedPlantFood + amount;
+        if (amount <= 0 || updated > 3) {
             return false;
         }
-        storedPlantFood += amount;
+        storedPlantFood = (int) updated;
         return true;
     }
 

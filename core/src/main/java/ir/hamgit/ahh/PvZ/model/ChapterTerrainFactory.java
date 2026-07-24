@@ -81,7 +81,7 @@ public final class ChapterTerrainFactory {
         }
     }
 
-    
+
     private static void floodRightColumns(Tile[][] tiles, int rows, int columns) {
         int waterStart = columns - Math.max(1, columns / 3);
         for (int r = 0; r < rows; r++) {

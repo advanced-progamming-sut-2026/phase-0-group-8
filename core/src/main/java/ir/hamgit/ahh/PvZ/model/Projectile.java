@@ -225,13 +225,19 @@ public class Projectile {
         if (jester.isReflecting()) {
             Plant nearestPlant = findNearestPlantLeft(jester, board);
             if (nearestPlant != null) {
-                nearestPlant.takeDamage(damage);
-                if (spec.isIce()) {
-                    nearestPlant.applyIceLayer();
-                }
+                damageReflectedPlant(nearestPlant, board);
             }
         }
         jester.triggerSpin(JESTER_SPIN_TICKS);
+    }
+
+    private void damageReflectedPlant(Plant plant, Board board) {
+        plant.takeDamage(damage);
+        if (!plant.isAlive()) {
+            board.handlePlantDestroyed(plant);
+        } else if (spec.isIce()) {
+            plant.applyIceLayer();
+        }
     }
 
     private Plant findNearestPlantLeft(Zombie jester, Board board) {

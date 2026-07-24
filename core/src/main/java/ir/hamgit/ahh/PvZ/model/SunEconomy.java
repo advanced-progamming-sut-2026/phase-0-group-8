@@ -1,7 +1,6 @@
 package ir.hamgit.ahh.PvZ.model;
 import ir.hamgit.ahh.PvZ.model.quest.LevelQuestTelemetry;
 import ir.hamgit.ahh.PvZ.model.entities.Plant;
-
 import ir.hamgit.ahh.PvZ.model.enums.SunType;
 import java.util.ArrayList;
 import java.util.List;
@@ -114,11 +113,12 @@ class SunEconomy {
     }
 
     void addSun(int amount) {
-        sunAmount += amount;
+        long updated = (long) sunAmount + amount;
+        sunAmount = (int) Math.max(0, Math.min(Integer.MAX_VALUE, updated));
     }
 
     void setSunAmount(int amount) {
-        sunAmount = amount;
+        sunAmount = Math.max(0, amount);
     }
 
     void explodeRadioactiveSun(Board board, int x, int lane) {
@@ -131,9 +131,16 @@ class SunEconomy {
             for (int c = Math.max(0, centerX - radius); c <= Math.min(board.getColumns() - 1, centerX + radius); c++) {
                 Tile tile = board.getTileAt(c, r);
                 if (tile != null && !tile.isEmpty()) {
-                    tile.getPlant().takeDamage(damage);
+                    damagePlant(board, tile.getPlant(), damage);
                 }
             }
+        }
+    }
+
+    private void damagePlant(Board board, Plant plant, int damage) {
+        plant.takeDamage(damage);
+        if (!plant.isAlive()) {
+            board.handlePlantDestroyed(plant);
         }
     }
 
@@ -141,14 +148,12 @@ class SunEconomy {
         return sunAmount;
     }
 
-    /** Ra Zombie / Turquoise Zombie: takes sun straight out of the player's wallet. */
     int stealSun(int amount) {
-        int stolen = Math.min(sunAmount, amount);
+        int stolen = Math.min(sunAmount, Math.max(0, amount));
         sunAmount -= stolen;
         return stolen;
     }
 
-    /** Ra Zombie: also steals a sun that's still falling, before it's collected. */
     int stealNearestFallingSun(int lane, double x) {
         for (Sun sun : suns) {
             boolean nearby = !sun.isCollected() && sun.getLane() == lane
