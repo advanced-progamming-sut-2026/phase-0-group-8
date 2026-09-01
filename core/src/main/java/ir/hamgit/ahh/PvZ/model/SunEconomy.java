@@ -59,8 +59,8 @@ class SunEconomy {
 
     private SunType rollSunType() {
         double r = Math.random();
-        if (r < 0.80) {
-            return SunType.NORMAL;
+        if (r < 2) {
+            return SunType.RADIOACTIVE;
         } else if (r < 0.95) {
             return SunType.SPECIAL;
         }

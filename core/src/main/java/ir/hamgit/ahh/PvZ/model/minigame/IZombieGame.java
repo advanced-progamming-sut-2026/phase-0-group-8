@@ -33,7 +33,8 @@ public class IZombieGame implements MinigameSession {
     private boolean won;
 
     public IZombieGame(List<ZombieType> availableZombies, Map<ZombieType, Integer> costs) {
-        this.board = new Board(ChapterType.MINIGAME, 1, 3, null, new MinigameLevelHandler());
+        this.board = new Board(ChapterType.MINIGAME, 1, 3, null,
+            new MinigameLevelHandler());
         this.board.enableBrainMode();
         this.availableZombies = availableZombies == null ? List.of()
             : availableZombies.stream().filter(type -> type != null && type != PRODUCER_TYPE)

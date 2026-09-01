@@ -144,6 +144,7 @@ final class GameCommandRouter {
     private void handleDisplayOrBare(String command, Map<String, String> flags, Board board) {
         if (command.startsWith("show map")) {
             BoardView.showMap(board);
+            controller.showWalletStatus();
         } else if (command.startsWith("show plants status")) {
             BoardView.showPlantsStatus(board);
         } else if (command.startsWith("show tile status")) {

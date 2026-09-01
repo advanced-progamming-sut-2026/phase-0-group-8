@@ -11,7 +11,6 @@ import ir.hamgit.ahh.PvZ.model.def.PlantAbilityProfiles;
 import ir.hamgit.ahh.PvZ.model.enums.*;
 import ir.hamgit.ahh.PvZ.model.repository.UserRepository;
 import ir.hamgit.ahh.PvZ.model.special.*;
-
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -341,6 +340,15 @@ public class GameController {
         }
     }
 
+    void showWalletStatus() {
+        if (currentUser == null) {
+            return;
+        }
+        flushCurrencyToUser();
+        System.out.printf("Coins: %d | Diamonds: %d%n",
+            currentUser.getCoins(), currentUser.getDiamonds());
+    }
+
     private void grantEarnedPots() {
         int pots = board.drainPotsEarned();
         for (int i = 0; i < pots && currentUser.getPotCount() < 20; i++) {
@@ -473,7 +481,6 @@ public class GameController {
             return null;
         }
     }
-
     private String normalizeEnumName(String raw) {
         return raw.trim().toUpperCase(Locale.ROOT).replace(' ', '_').replace('-', '_');
     }
