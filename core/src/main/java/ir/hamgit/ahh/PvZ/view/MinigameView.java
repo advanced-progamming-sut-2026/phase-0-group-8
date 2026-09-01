@@ -6,8 +6,9 @@ import ir.hamgit.ahh.PvZ.model.minigame.IZombieGame;
 import ir.hamgit.ahh.PvZ.model.minigame.MinigameSession;
 import ir.hamgit.ahh.PvZ.model.minigame.VasebreakerGame;
 import ir.hamgit.ahh.PvZ.model.minigame.WallnutBowlingGame;
+import ir.hamgit.ahh.PvZ.model.registry.PlantRegistry;
 
-
+ 
 public final class MinigameView {
 
     private MinigameView() {
@@ -57,9 +58,21 @@ public final class MinigameView {
     private static void showIZombie(IZombieGame game) {
         String available = game.getAvailableZombies().stream()
             .map(type -> type + "=" + game.getCost(type)).toList().toString();
-        System.out.println("I-Zombie sun: " + game.getSunAmount());
-        System.out.println("Place at x=" + game.getFirstPlacementColumn()
-            + " or x=" + game.getBoard().getColumns() + " | Available: " + available);
+        if (game.isCouchPlay()) {
+            String plants = game.getAvailablePlants().stream()
+                .map(type -> type + "=" + PlantRegistry.get(type).getSunCost()).toList().toString();
+            System.out.println("Couch Play | P1 plant sun: " + game.getPlantSunAmount()
+                + " | P2 zombie sun: " + game.getSunAmount()
+                + " | Time: " + game.getRemainingSeconds() + "s");
+            System.out.println("P1 plants: x=" + game.getFirstPlantColumn() + "-" + game.getLastPlantColumn()
+                + " " + plants);
+            System.out.println("P2 zombies: x=" + game.getFirstPlacementColumn() + "-"
+                + (game.getBoard().getColumns() - 1) + " " + available);
+        } else {
+            System.out.println("I-Zombie sun: " + game.getSunAmount());
+            System.out.println("Place at x=" + game.getFirstPlacementColumn()
+                + " | Available: " + available);
+        }
         BoardView.showGrid(game.getBoard());
         printBrains(game.getBrainAvailability());
     }

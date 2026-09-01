@@ -66,9 +66,9 @@ public class BeghouledGame implements MinigameSession {
         return map;
     }
 
-    // ------------------------------------------------------------------
-    // Board setup
-    // ------------------------------------------------------------------
+    
+    
+    
 
     private void fillPlayableBoard() {
         clearCraters();
@@ -133,9 +133,9 @@ public class BeghouledGame implements MinigameSession {
         grid[row][col] = type;
     }
 
-    // ------------------------------------------------------------------
-    // Swapping / matching
-    // ------------------------------------------------------------------
+    
+    
+    
 
     public boolean swapPlants(int x1, int y1, int x2, int y2) {
         if (!isValidSwapTarget(x1, y1, x2, y2)) {
@@ -264,9 +264,9 @@ public class BeghouledGame implements MinigameSession {
         matches.add(group);
     }
 
-    // ------------------------------------------------------------------
-    // Gravity / refill / crater tracking
-    // ------------------------------------------------------------------
+    
+    
+    
 
     private void dropAndRefill() {
         for (int c = 0; c < board.getColumns(); c++) {
@@ -336,7 +336,7 @@ public class BeghouledGame implements MinigameSession {
         return matched;
     }
 
-    /** Called by {@link BeghouledLevelHandler} whenever a zombie eats a plant on this grid. */
+     
     public void onPlantEatenByZombie(int x, int lane) {
         if (!inBounds(x, lane)) {
             return;
@@ -345,9 +345,9 @@ public class BeghouledGame implements MinigameSession {
         grid[lane][x] = null;
     }
 
-    // ------------------------------------------------------------------
-    // Upgrades / win / commands
-    // ------------------------------------------------------------------
+    
+    
+    
 
     public boolean upgrade(PlantType from, PlantType to) {
         Integer cost = upgradeCost.get(from);

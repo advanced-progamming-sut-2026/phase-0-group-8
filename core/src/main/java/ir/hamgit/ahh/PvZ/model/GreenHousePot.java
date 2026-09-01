@@ -15,6 +15,11 @@ public final class GreenHousePot implements Serializable {
     private boolean isMarigold;
     private double growthHours;
 
+     
+    public GreenHousePot() {
+        this(true);
+    }
+
     public GreenHousePot(boolean isLocked) {
         this.isLocked = isLocked;
     }
@@ -94,7 +99,7 @@ public final class GreenHousePot implements Serializable {
         return plantType == null;
     }
 
-    /** Result of harvesting; the service applies its reward to the user. */
+     
     public record Harvest(PlantType plantType, boolean marigold) {
     }
 }

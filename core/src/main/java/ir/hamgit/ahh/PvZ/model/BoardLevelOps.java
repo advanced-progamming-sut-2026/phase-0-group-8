@@ -10,6 +10,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
+ 
 final class BoardLevelOps {
 
     private final Set<ZombieType> encountered = EnumSet.noneOf(ZombieType.class);
@@ -48,8 +49,10 @@ final class BoardLevelOps {
     private List<String> killLaneZombies(Board board, int lane) {
         List<String> killed = new ArrayList<>();
         for (Zombie zombie : board.getZombies()) {
-            boolean vulnerable = zombie.getLane() == lane && zombie.isAlive()
-                && zombie.getDef().getType() != ZombieType.GARGANTUAR;
+            
+            
+            
+            boolean vulnerable = zombie.getLane() == lane && zombie.isAlive();
             if (vulnerable) {
                 killed.add(zombie.getDef().getType().toString());
                 LevelQuestTelemetry.recordMowerKill(board);

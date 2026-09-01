@@ -25,6 +25,40 @@ allprojects {
   }
 }
 
+/**
+ * Small, dependency-free source linter used by the Phase 2 checklist. The
+ * libGDX-generated StartupHelper keeps its upstream tab formatting, so it is
+ * excluded; all student-owned Java sources must use spaces and have no
+ * trailing whitespace.
+ */
+tasks.register('phase2Lint') {
+  group = 'verification'
+  description = 'Checks student Java sources for tabs and trailing whitespace.'
+
+  doLast {
+    def violations = []
+    fileTree(rootDir) {
+      include '**/src/**/*.java'
+      exclude '**/build/**'
+      exclude '**/lwjgl3/src/main/java/**/StartupHelper.java'
+    }.files.sort().each { sourceFile ->
+      sourceFile.readLines('UTF-8').eachWithIndex { line, index ->
+        if (line.contains('\t')) {
+          violations << "${rootDir.toPath().relativize(sourceFile.toPath())}:${index + 1}: tab character"
+        }
+        if (line != line.replaceFirst(/\s+$/, '')) {
+          violations << "${rootDir.toPath().relativize(sourceFile.toPath())}:${index + 1}: trailing whitespace"
+        }
+      }
+    }
+
+    if (!violations.isEmpty()) {
+      throw new GradleException("Phase 2 lint found ${violations.size()} error(s):\n" + violations.join('\n'))
+    }
+    logger.lifecycle('Phase 2 lint: 0 errors')
+  }
+}
+
 configure(subprojects) {
   apply plugin: 'java-library'
   java.sourceCompatibility = 17
@@ -55,6 +89,10 @@ configure(subprojects) {
 
   compileJava {
     options.incremental = true
+  }
+
+  tasks.named('check') {
+    dependsOn rootProject.tasks.named('phase2Lint')
   }
 }
 

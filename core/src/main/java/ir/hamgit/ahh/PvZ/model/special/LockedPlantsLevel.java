@@ -23,7 +23,7 @@ public class LockedPlantsLevel extends SpecialLevelHandler {
         this.forcedTypes = forcedTypes;
     }
 
-    /** Variant 1: locks every other plant sharing {@code familyTag} except {@code keepAvailable}. */
+     
     public static LockedPlantsLevel familyLockout(Tag familyTag, PlantType keepAvailable) {
         Set<PlantType> locked = EnumSet.noneOf(PlantType.class);
         for (PlantDef def : PlantRegistry.getAll()) {
@@ -34,7 +34,7 @@ public class LockedPlantsLevel extends SpecialLevelHandler {
         return new LockedPlantsLevel(locked, Collections.emptySet());
     }
 
-    /** Variant 2: only {@code mandatoryPlants} are selectable - the player is forced to start with them. */
+     
     public static LockedPlantsLevel forcedStarterKit(Set<PlantType> mandatoryPlants) {
         return new LockedPlantsLevel(Collections.emptySet(), EnumSet.copyOf(mandatoryPlants));
     }

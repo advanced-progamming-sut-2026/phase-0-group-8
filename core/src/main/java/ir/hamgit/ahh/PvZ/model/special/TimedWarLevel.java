@@ -47,6 +47,14 @@ public class TimedWarLevel extends SpecialLevelHandler {
         return timeRemainingTicks <= 0 && progress < target;
     }
 
+    public boolean isSunVariant() {
+        return sunVariant;
+    }
+
+    public int getTarget() {
+        return target;
+    }
+
     public int getTimeRemainingTicks() {
         return timeRemainingTicks;
     }

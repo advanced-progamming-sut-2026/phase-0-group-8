@@ -153,7 +153,9 @@ public class Zombie {
             }
             return;
         }
-        int baseDamage = Math.max(1, (int) Math.round(def.getDamage() * difficultyMultiplier));
+        
+        
+        int baseDamage = damagePerTick(def.getDamage(), difficultyMultiplier);
         int dmg = isEnraged() ? baseDamage * ENRAGED_MULTIPLIER : baseDamage;
         target.takeDamage(dmg);
         target.onBitten(board, this);
@@ -188,7 +190,8 @@ public class Zombie {
     private void moveAsHypnotized(Board board) {
         Zombie enemy = board.getNearestEnemyZombieInFront(this);
         if (enemy != null) {
-            enemy.takeDamage(def.getDamage() * hypnotizedDamagePercent / 100, false, false);
+            int damage = damagePerTick(def.getDamage(), difficultyMultiplier);
+            enemy.takeDamage(damage * hypnotizedDamagePercent / 100, false, false);
             if (!enemy.isAlive()) {
                 board.markDeathHandledIfNeeded(enemy);
             }
@@ -213,6 +216,11 @@ public class Zombie {
             base *= ENRAGED_MULTIPLIER;
         }
         return base;
+    }
+
+    private int damagePerTick(int damagePerSecond, double multiplier) {
+        return Math.max(1, (int) Math.round(
+            damagePerSecond * multiplier / Board.TICKS_PER_SECOND));
     }
 
     private boolean isSpinning() {
@@ -290,7 +298,7 @@ public class Zombie {
             board.revertCatsCastBy(this);
         }
         if (glowing) {
-            board.grantPlantFood();
+            board.dropPlantFood(x, lane);
         }
         board.maybeDropCurrency();
         board.onZombieKilled(this);

@@ -34,7 +34,7 @@ public final class PlantRegistry {
         return Collections.unmodifiableCollection(ALL.values());
     }
 
-    /** Replaces the catalogue from a classpath resource or filesystem JSON file. */
+     
     public static synchronized void loadFromJson(String location) {
         Map<PlantType, PlantDef> loaded = new EnumMap<>(PlantType.class);
         for (Map<String, Object> row : JsonDefinitionLoader.readObjects(location, "plants")) {

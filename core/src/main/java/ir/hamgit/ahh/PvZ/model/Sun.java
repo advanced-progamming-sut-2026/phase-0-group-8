@@ -1,7 +1,10 @@
 package ir.hamgit.ahh.PvZ.model;
 
+import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.enums.SunType;
 
+
+ 
 public class Sun {
 
     private static final int FALL_TICKS = 50;
@@ -22,6 +25,9 @@ public class Sun {
         this(type, x, lane, false, -1);
     }
 
+    public Sun(SunType type, int x, int lane, boolean producedByPlant) {
+        this(type, x, lane, producedByPlant, -1);
+    }
 
     public Sun(SunType type, int x, int lane, boolean producedByPlant, int customValue) {
         this.type = type;
@@ -65,6 +71,9 @@ public class Sun {
         }
     }
 
+    public boolean isCollectable() {
+        return !collected;
+    }
 
     public void explodeIfRadioactive(Board board) {
         if (type == SunType.RADIOACTIVE) {
@@ -86,6 +95,13 @@ public class Sun {
 
     public boolean isOnGround() {
         return onGround;
+    }
+
+    public float getFallProgress() {
+        if (producedByPlant || onGround) {
+            return 1f;
+        }
+        return Math.min(1f, ticksFalling / (float) FALL_TICKS);
     }
 
     public boolean isProducedByPlant() {

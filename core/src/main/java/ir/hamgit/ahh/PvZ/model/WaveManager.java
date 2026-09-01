@@ -43,10 +43,10 @@ public class WaveManager {
         this.random = new Random(dailySeed);
     }
 
-    /**
-     * @param waveNumber 1-based wave index within the level
-     * @param totalWavesInLevel total number of waves in this level (used to detect the final/flag wave)
-     */
+     
+
+
+
     public int getWaveCost(int waveNumber, int totalWavesInLevel) {
         double cost = baseWaveCost * Math.pow(WAVE_GROWTH, waveNumber - 1);
         if (waveNumber == totalWavesInLevel) {
@@ -67,7 +67,13 @@ public class WaveManager {
                 .filter(def -> effectiveCost(def) <= availableBudget)
                 .filter(def -> canFillBudget(availableBudget - effectiveCost(def), pool)).toList();
             if (affordable.isEmpty()) {
-                break;
+                
+                
+                
+                affordable = pool.stream()
+                    .filter(def -> effectiveCost(def) <= availableBudget)
+                    .toList();
+                if (affordable.isEmpty()) break;
             }
             ZombieDef pick = affordable.get(random.nextInt(affordable.size()));
             wave.add(pick);
@@ -158,6 +164,24 @@ public class WaveManager {
             }
         }
         return remaining;
+    }
+
+     
+
+
+
+
+    float getContinuousProgress(Board board) {
+        if (currentWave >= totalWaves) {
+            return 1f;
+        }
+        float insideWave = 0f;
+        if (waveStarted[currentWave] && currentWaveTotalHp > 0) {
+            float remainingFraction = remainingHpOfCurrentWave(board) / (float) currentWaveTotalHp;
+            insideWave = Math.min(1f, Math.max(0f,
+                (1f - remainingFraction) / (1f - (float) WAVE_ADVANCE_HP_FRACTION)));
+        }
+        return Math.min(1f, (currentWave + insideWave) / Math.max(1f, totalWaves));
     }
 
     public int getCurrentWave() {

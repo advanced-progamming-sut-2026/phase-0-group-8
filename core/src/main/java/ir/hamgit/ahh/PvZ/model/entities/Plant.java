@@ -26,6 +26,8 @@ public class Plant {
     private int stackCount = 1;
     private int boostTicksRemaining;
     private int iceLayers;
+    
+    private boolean octopusCovered;
     private int iceShellHp;
     private int metalArmorHp;
     private boolean boosted;
@@ -140,6 +142,7 @@ public class Plant {
     }
 
     public void applyIceLayer() {
+        octopusCovered = false;
         iceLayers = Math.min(MAX_ICE_LAYERS, iceLayers + 1);
         if (iceLayers == MAX_ICE_LAYERS) {
             frozen = true;
@@ -148,6 +151,7 @@ public class Plant {
     }
 
     public void meltIce() {
+        octopusCovered = false;
         iceLayers = 0;
         frozen = false;
         iceShellHp = 0;
@@ -157,6 +161,18 @@ public class Plant {
         iceLayers = MAX_ICE_LAYERS;
         frozen = true;
         iceShellHp = 600;
+    }
+
+     
+    public void coverWithOctopus() {
+        octopusCovered = true;
+        iceLayers = MAX_ICE_LAYERS;
+        frozen = true;
+        iceShellHp = 600;
+    }
+
+    public boolean isOctopusCovered() {
+        return octopusCovered;
     }
 
     public void damageIce(int amount) {

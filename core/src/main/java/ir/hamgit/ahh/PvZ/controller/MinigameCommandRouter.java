@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
+ 
 final class MinigameCommandRouter {
 
     private static final Pattern COORD_PAIR = Pattern.compile("(-?\\d+)\\D+(-?\\d+)");
@@ -51,8 +51,11 @@ final class MinigameCommandRouter {
                 + "plant plant -t <plant> -l (x,y)";
         } else if (session instanceof WallnutBowlingGame) {
             commands = "plant ball -l (x,y)";
-        } else if (session instanceof IZombieGame) {
-            commands = "place zombie -t <zombie> -l (x,y)";
+        } else if (session instanceof IZombieGame game) {
+            commands = game.isCouchPlay()
+                ? "place plant -t <plant> -l (x,y); place zombie -t <zombie> -l (x,y); "
+                    + "collect sun -l (x,y)"
+                : "place zombie -t <zombie> -l (x,y)";
         } else if (session instanceof BeghouledGame) {
             commands = "swap (x1,y1) (x2,y2); upgrade -f <plant> -t <plant>";
         } else if (session instanceof ZombotanyGame) {
@@ -105,14 +108,29 @@ final class MinigameCommandRouter {
 
     private void handleIZombie(IZombieGame game, String raw) {
         String command = raw.trim();
-        if (command.startsWith("place zombie")) {
+        if (game.isCouchPlay() && command.startsWith("place plant")) {
+            placeIZombiePlant(game, command);
+        } else if (command.startsWith("place zombie")) {
             placeZombie(game, command);
+        } else if (game.isCouchPlay() && command.startsWith("collect sun")) {
+            applyCoordinates(command, game::collectPlantSun);
         } else if (command.startsWith("advance time")) {
             advance(ticks(command), game::tick);
         } else if (command.startsWith("show map")) {
             MinigameView.show(game);
         } else {
             System.out.println("Unknown I-Zombie command: " + raw);
+        }
+    }
+
+    private void placeIZombiePlant(IZombieGame game, String raw) {
+        Map<String, String> flags = CommandParser.parse(raw);
+        PlantType type = plantType(flags.get("-t"), false);
+        int[] position = coordinates(raw);
+        if (type != null && position != null) {
+            game.placePlant(type, position[0], position[1]);
+        } else if (position == null) {
+            System.out.println("Coordinates are required as x,y.");
         }
     }
 

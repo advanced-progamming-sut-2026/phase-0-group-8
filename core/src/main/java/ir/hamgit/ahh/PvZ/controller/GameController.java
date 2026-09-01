@@ -11,9 +11,12 @@ import ir.hamgit.ahh.PvZ.model.def.PlantAbilityProfiles;
 import ir.hamgit.ahh.PvZ.model.enums.*;
 import ir.hamgit.ahh.PvZ.model.repository.UserRepository;
 import ir.hamgit.ahh.PvZ.model.special.*;
+
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -29,7 +32,9 @@ public class GameController {
     private ChapterType pendingChapter;
     private int pendingLevelIndex = 1;
     private SpecialLevelHandler pendingSpecialLevelHandler;
-    private final Set<PlantType> selectedPlants = new HashSet<>();
+    
+    
+    private final Set<PlantType> selectedPlants = new LinkedHashSet<>();
     private final Set<PlantType> boostedPlants = new HashSet<>();
     private final Map<PlantType, Integer> plantCooldowns = new EnumMap<>(PlantType.class);
     private int difficulty = 3;
@@ -62,7 +67,7 @@ public class GameController {
         applyForcedStarterKitIfAny();
     }
 
-    /** LockedPlantsLevel's "forced starter kit" variant pre-selects its mandatory plants. */
+     
     private void applyForcedStarterKitIfAny() {
         if (pendingSpecialLevelHandler instanceof LockedPlantsLevel locked) {
             for (PlantType type : locked.getForcedTypes()) {
@@ -340,15 +345,6 @@ public class GameController {
         }
     }
 
-    void showWalletStatus() {
-        if (currentUser == null) {
-            return;
-        }
-        flushCurrencyToUser();
-        System.out.printf("Coins: %d | Diamonds: %d%n",
-            currentUser.getCoins(), currentUser.getDiamonds());
-    }
-
     private void grantEarnedPots() {
         int pots = board.drainPotsEarned();
         for (int i = 0; i < pots && currentUser.getPotCount() < 20; i++) {
@@ -360,10 +356,11 @@ public class GameController {
         commandRouter.handle(raw);
     }
 
-    boolean plantSelected(PlantType type, int x, int lane) {
+    public boolean plantSelected(PlantType type, int x, int lane) {
         int level = currentUser == null ? 1 : currentUser.getPlantLevel(type);
-        int cost = Math.max(0, PlantRegistry.get(type).getSunCost()
-            - PlantLevelEffects.sum(type, level, "Cost -"));
+        int cost = board.getSpecialLevelHandler() instanceof ConveyorBeltLevel ? 0
+            : Math.max(0, PlantRegistry.get(type).getSunCost()
+                - PlantLevelEffects.sum(type, level, "Cost -"));
         if (!isPlantableRightNow(type) || !board.plantPlant(type, x, lane, cost, level)) {
             return false;
         }
@@ -481,6 +478,7 @@ public class GameController {
             return null;
         }
     }
+
     private String normalizeEnumName(String raw) {
         return raw.trim().toUpperCase(Locale.ROOT).replace(' ', '_').replace('-', '_');
     }
@@ -490,10 +488,73 @@ public class GameController {
     }
 
     public Set<PlantType> getSelectedPlants() {
-        return selectedPlants;
+        return Collections.unmodifiableSet(new LinkedHashSet<>(selectedPlants));
+    }
+
+    public Set<PlantType> getBoostedPlants() {
+        return Set.copyOf(boostedPlants);
+    }
+
+    public int getPlantCooldownTicks(PlantType type) {
+        return plantCooldowns.getOrDefault(type, 0);
+    }
+
+     
+    public int getPlantSunCost(PlantType type) {
+        PlantDef def = PlantRegistry.get(type);
+        if (def == null) return Integer.MAX_VALUE;
+        if (board != null && board.getSpecialLevelHandler() instanceof ConveyorBeltLevel) return 0;
+        int level = currentUser == null ? 1 : currentUser.getPlantLevel(type);
+        return Math.max(0, def.getSunCost() - PlantLevelEffects.sum(type, level, "Cost -"));
+    }
+
+    public ChapterType getPendingChapter() {
+        return pendingChapter;
+    }
+
+    public int getPendingLevelIndex() {
+        return pendingLevelIndex;
+    }
+
+    public SpecialLevelHandler getPendingSpecialLevelHandler() {
+        return pendingSpecialLevelHandler;
+    }
+
+    public User getCurrentUser() {
+        return currentUser;
+    }
+
+    public boolean isSelectablePlant(PlantType type) {
+        return isSelectableNow(type);
     }
 
     public void setCurrentUser(User user) {
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        if (!sameAccount(this.currentUser, user)) {
+            board = null;
+            pendingChapter = null;
+            pendingLevelIndex = 1;
+            pendingSpecialLevelHandler = null;
+            selectedPlants.clear();
+            boostedPlants.clear();
+            plantCooldowns.clear();
+            scoreMode = false;
+        }
         this.currentUser = user;
+    }
+
+    private boolean sameAccount(User left, User right) {
+        if (left == null || right == null) return left == right;
+        String leftName = left.getUsername();
+        String rightName = right.getUsername();
+        return leftName != null && rightName != null && leftName.equalsIgnoreCase(rightName);
     }
 }

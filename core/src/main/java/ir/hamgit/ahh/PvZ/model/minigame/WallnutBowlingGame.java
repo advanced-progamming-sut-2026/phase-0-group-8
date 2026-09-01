@@ -25,8 +25,7 @@ public class WallnutBowlingGame implements MinigameSession {
     private boolean won;
 
     public WallnutBowlingGame(int redLineColumn, List<ZombieType> initialZombies) {
-        this.board = new Board(ChapterType.MINIGAME, 1, 3, null,
-            new MinigameLevelHandler());
+        this.board = new Board(ChapterType.MINIGAME, 1, 3, null, new MinigameLevelHandler());
         this.redLineColumn = redLineColumn;
         spawnInitialZombies(initialZombies);
         deliverNextBall();

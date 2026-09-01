@@ -43,7 +43,7 @@ public final class ShopController {
         Result result = count == null
             ? new Result(false, "Error: count must be a whole number.")
             : ShopService.purchase(user, CommandParser.getFlag(flags, "i"), count,
-            CommandParser.getFlag(flags, "t"));
+                CommandParser.getFlag(flags, "t"));
         if (result.isSuccessful()) {
             UserRepository.updateUser(user);
         }

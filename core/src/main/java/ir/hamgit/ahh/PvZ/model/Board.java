@@ -24,6 +24,7 @@ public class Board {
     private final Tile[][] tiles;
     private final List<Zombie> zombies = new ArrayList<>();
     private final List<Projectile> projectiles = new ArrayList<>();
+    private final List<PlantFoodPickup> plantFoodPickups = new ArrayList<>();
     private final boolean[] lawnMowers;
     private final SunEconomy sunEconomy;
     private final CurrencyLedger currencyLedger = new CurrencyLedger();
@@ -55,6 +56,7 @@ public class Board {
         this.specialLevelHandler.onLevelStart(this);
     }
 
+    
 
     public void advanceTime(int ticks) {
         for (int i = 0; i < ticks && !levelOps.isGameOver(); i++) {
@@ -71,6 +73,7 @@ public class Board {
         tickProjectiles();
         combatOps.handleZombieDeaths(this);
         tickSuns();
+        tickPlantFoodPickups();
         chapterMechanics.tick(this);
         checkWaveAdvance();
         checkWinLoss();
@@ -106,6 +109,14 @@ public class Board {
         sunEconomy.tickSuns();
     }
 
+    private void tickPlantFoodPickups() {
+        for (PlantFoodPickup pickup : plantFoodPickups) {
+            pickup.tick();
+        }
+        plantFoodPickups.removeIf(PlantFoodPickup::isCollected);
+    }
+
+    
 
     private void tickSunDrop() {
         sunEconomy.tickDrop(this);
@@ -133,6 +144,7 @@ public class Board {
         sunEconomy.addSun(amount);
     }
 
+     
     public void setSunAmount(int amount) {
         sunEconomy.setSunAmount(amount);
     }
@@ -141,6 +153,7 @@ public class Board {
         sunEconomy.explodeRadioactiveSun(this, x, lane);
     }
 
+    
     public boolean plantPlant(PlantType type, int x, int lane) {
         return plantingOps.plantPlant(this, type, x, lane);
     }
@@ -153,6 +166,7 @@ public class Board {
         return plantingOps.plantPlant(this, type, x, lane, adjustedCost, level);
     }
 
+     
     public boolean plantForFree(PlantType type, int x, int lane) {
         return plantingOps.plantForFree(this, type, x, lane);
     }
@@ -167,6 +181,26 @@ public class Board {
 
     public void grantPlantFood() {
         plantingOps.grantPlantFood(this);
+    }
+
+     
+    public void dropPlantFood(double zombieX, int lane) {
+        int column = Math.max(0, Math.min(COLUMNS - 1, (int) Math.floor(zombieX)));
+        plantFoodPickups.add(new PlantFoodPickup(column, lane));
+    }
+
+     
+    public boolean collectPlantFood(int x, int lane) {
+        java.util.Iterator<PlantFoodPickup> iterator = plantFoodPickups.iterator();
+        while (iterator.hasNext()) {
+            PlantFoodPickup pickup = iterator.next();
+            if (pickup.collectAt(x, lane)) {
+                incrementPlantFoodCount();
+                iterator.remove();
+                return true;
+            }
+        }
+        return false;
     }
 
     public void cheatAddPlantFood() {
@@ -189,6 +223,7 @@ public class Board {
         return true;
     }
 
+    
 
     public boolean hasZombieInLaneAhead(int plantX, int lane, int range) {
         return combatOps.hasZombieInLaneAhead(this, plantX, lane, range);
@@ -230,7 +265,7 @@ public class Board {
         combatOps.markDeathHandledIfNeeded(this, zombie);
     }
 
-    // Zombie-specific ability hooks (called from Zombie's per-type methods)
+    
 
     public boolean hasPlantWithinTiles(int lane, double x, int range) {
         return zombieAbilities.hasPlantWithinTiles(this, lane, x, range);
@@ -268,6 +303,7 @@ public class Board {
         zombieAbilities.turnRandomPlantIntoCat(this, lane, wizard);
     }
 
+     
     public void revertCatsCastBy(Zombie wizard) {
         zombieAbilities.revertCatsCastBy(wizard);
     }
@@ -292,6 +328,7 @@ public class Board {
         zombieAbilities.destroyPlantsInLane(this, lane);
     }
 
+    
     public void triggerLawnMower(int lane, Zombie triggeringZombie) {
         levelOps.triggerMower(this, lane, triggeringZombie);
     }
@@ -319,6 +356,7 @@ public class Board {
         waveManager.checkAdvance(this);
     }
 
+     
     public void startZombieWaves() {
         if (specialLevelHandler instanceof PlantWhatYouGetLevel pwyg) {
             pwyg.startWaves();
@@ -330,6 +368,7 @@ public class Board {
             waveManager.hasFinalWaveStarted());
     }
 
+    
 
     public void maybeDropCurrency() {
         currencyLedger.maybeDropCurrency();
@@ -373,7 +412,7 @@ public class Board {
         return currencyLedger.drainPotsEarned();
     }
 
-    // Accessors
+    
     boolean isInBounds(int x, int lane) {
         return x >= 0 && x < COLUMNS && lane >= 0 && lane < ROWS;
     }
@@ -394,6 +433,10 @@ public class Board {
         return COLUMNS;
     }
 
+    public List<Sun> getSuns() {
+        return sunEconomy.getSuns();
+    }
+
     public int getSunAmount() {
         return sunEconomy.getSunAmount();
     }
@@ -408,6 +451,14 @@ public class Board {
 
     public int getCurrentWave() {
         return waveManager.getCurrentWave();
+    }
+
+     
+    public float getZombieProgress() {
+        if (isGameOver() && isPlayerWon()) {
+            return 1f;
+        }
+        return waveManager.getContinuousProgress(this);
     }
 
     public int getTotalWaves() {
@@ -428,6 +479,10 @@ public class Board {
 
     public List<Projectile> getProjectiles() {
         return projectiles;
+    }
+
+    public List<PlantFoodPickup> getPlantFoodPickups() {
+        return List.copyOf(plantFoodPickups);
     }
 
     public Set<ZombieType> getEncounteredZombies() {

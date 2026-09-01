@@ -278,4 +278,28 @@ public class Projectile {
     public PlantType getOwnerType() {
         return spec.getOwnerType();
     }
+
+    public boolean isFire() {
+        return fire;
+    }
+
+    public boolean isIce() {
+        return spec.isIce() && !fire;
+    }
+
+    public boolean isPoison() {
+        return spec.isPoison();
+    }
+
+    public int getSplashRadius() {
+        return spec.getSplashRadius();
+    }
+
+    public int getStartX() {
+        return spec.getStartX();
+    }
+
+    public int getDirection() {
+        return spec.getDirection();
+    }
 }

@@ -29,6 +29,8 @@ public class User implements java.io.Serializable {
     private int gamesPlayed;
     private int levelsCompleted;
     private int bestScoreMode;
+     
+    private Integer networkBestScore;
     private List<PlantType> unlockedPlants;
     private Set<ZombieType> seenZombies;
     private boolean stayLoggedIn;
@@ -48,6 +50,20 @@ public class User implements java.io.Serializable {
     private List<GreenHousePot> greenhousePots;
     private String dailyOfferPlant;
     private boolean dailyOfferPurchased;
+    
+    private int gameSpeed = 1;
+    private boolean showGrid;
+    private boolean debugMode;
+    
+    
+    private Integer musicVolume = 70;
+    private Integer soundEffectsVolume = 80;
+    private boolean audioMuted;
+
+     
+    public User() {
+        this("", "", "", "", Gender.MALE);
+    }
 
     public User(String username, String passwordHash, String nickname,
                 String email, Gender gender) {
@@ -103,6 +119,18 @@ public class User implements java.io.Serializable {
         storedPlantFood = Math.max(0, Math.min(3, storedPlantFood));
         dailyOfferPlant = dailyOfferPlant == null ? PlantType.PEASHOOTER.name() : dailyOfferPlant;
         repairGreenhouse();
+        gameSpeed = gameSpeed < 1 || gameSpeed > 3 ? 1 : gameSpeed;
+        musicVolume = normalizeVolume(musicVolume, 70);
+        soundEffectsVolume = normalizeVolume(soundEffectsVolume, 80);
+    }
+
+    private Integer normalizeVolume(Integer value, int fallback) {
+        return value == null ? fallback : Math.max(0, Math.min(100, value));
+    }
+
+     
+    public void normalize() {
+        repairDeserializedState();
     }
 
     private void repairGreenhouse() {
@@ -236,6 +264,17 @@ public class User implements java.io.Serializable {
         if (score > bestScoreMode) {
             bestScoreMode = score;
         }
+        if (score > 0 && (networkBestScore == null || score > networkBestScore)) {
+            networkBestScore = score;
+        }
+    }
+
+    public Integer getNetworkBestScore() {
+        return networkBestScore;
+    }
+
+    public void setNetworkBestScore(Integer networkBestScore) {
+        this.networkBestScore = networkBestScore == null ? null : Math.max(0, networkBestScore);
     }
 
     public List<PlantType> getUnlockedPlants() {
@@ -470,6 +509,57 @@ public class User implements java.io.Serializable {
     private ChapterType[] adventureChapters() {
         return new ChapterType[] {ChapterType.ANCIENT_EGYPT, ChapterType.FROSTBITE_CAVES,
             ChapterType.BIG_WAVE_BEACH, ChapterType.DARK_AGES};
+    }
+
+    public int getGameSpeed() {
+        return gameSpeed < 1 || gameSpeed > 3 ? 1 : gameSpeed;
+    }
+
+    public void setGameSpeed(int gameSpeed) {
+        if (gameSpeed < 1 || gameSpeed > 3) {
+            throw new IllegalArgumentException("Game speed must be between 1 and 3.");
+        }
+        this.gameSpeed = gameSpeed;
+    }
+
+    public boolean isShowGrid() {
+        return showGrid;
+    }
+
+    public void setShowGrid(boolean showGrid) {
+        this.showGrid = showGrid;
+    }
+
+    public boolean isDebugMode() {
+        return debugMode;
+    }
+
+    public void setDebugMode(boolean debugMode) {
+        this.debugMode = debugMode;
+    }
+
+    public int getMusicVolume() {
+        return normalizeVolume(musicVolume, 70);
+    }
+
+    public void setMusicVolume(int value) {
+        musicVolume = normalizeVolume(value, 70);
+    }
+
+    public int getSoundEffectsVolume() {
+        return normalizeVolume(soundEffectsVolume, 80);
+    }
+
+    public void setSoundEffectsVolume(int value) {
+        soundEffectsVolume = normalizeVolume(value, 80);
+    }
+
+    public boolean isAudioMuted() {
+        return audioMuted;
+    }
+
+    public void setAudioMuted(boolean audioMuted) {
+        this.audioMuted = audioMuted;
     }
 
     public int getStoredPlantFood() {

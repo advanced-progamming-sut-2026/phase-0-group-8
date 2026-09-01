@@ -32,8 +32,7 @@ public class VasebreakerGame implements MinigameSession {
     private boolean won;
 
     public VasebreakerGame(List<int[]> plantVasePositions, List<int[]> gargantuarVasePositions) {
-        this.board = new Board(ChapterType.MINIGAME, 1, 3, null,
-            new MinigameLevelHandler());
+        this.board = new Board(ChapterType.MINIGAME, 1, 3, null, new MinigameLevelHandler());
         int rows = board.getRows();
         int cols = board.getColumns();
         this.broken = new boolean[rows][cols];

@@ -2,6 +2,8 @@ package ir.hamgit.ahh.PvZ.model.special;
 
 import ir.hamgit.ahh.PvZ.model.Board;
 import ir.hamgit.ahh.PvZ.model.enums.PlantType;
+import ir.hamgit.ahh.PvZ.model.special.SpecialLevelHandler;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -43,10 +45,12 @@ public class ConveyorBeltLevel extends SpecialLevelHandler {
         System.out.println("Conveyor belt delivered: " + next);
     }
 
+     
     public void consumeOffer(PlantType type) {
         queue.remove(type);
     }
 
+     
     public boolean isOffered(PlantType type) {
         return queue.contains(type);
     }

@@ -23,11 +23,16 @@ public class MinigameController {
     private final MinigameCommandRouter commandRouter = new MinigameCommandRouter();
 
     public boolean start(String name, int level) {
+        return start(name, level, false);
+    }
+
+     
+    public boolean start(String name, int level, boolean couchPlay) {
         if (level < 1 || level > 3) {
             return false;
         }
         String normalizedName = normalize(name);
-        MinigameSession newGame = createGame(normalizedName, level);
+        MinigameSession newGame = createGame(normalizedName, level, couchPlay);
         if (newGame == null) {
             return false;
         }
@@ -38,11 +43,11 @@ public class MinigameController {
         return true;
     }
 
-    private MinigameSession createGame(String name, int level) {
+    private MinigameSession createGame(String name, int level, boolean couchPlay) {
         return switch (name) {
             case "vasebreaker" -> createVasebreaker(level);
             case "wallnut_bowling" -> createBowling(level);
-            case "i_zombie" -> createIZombie(level);
+            case "i_zombie" -> createIZombie(level, couchPlay);
             case "beghouled" -> new BeghouledGame(3 + level * 2, Math.min(5, level + 2));
             case "zombotany" -> new ZombotanyGame(level);
             default -> null;
@@ -68,13 +73,13 @@ public class MinigameController {
         return new WallnutBowlingGame(3, pool);
     }
 
-    private IZombieGame createIZombie(int level) {
+    private IZombieGame createIZombie(int level, boolean couchPlay) {
         List<ZombieType> roster = iZombieRoster(level);
         Map<ZombieType, Integer> costs = new EnumMap<>(ZombieType.class);
         for (int i = 0; i < roster.size(); i++) {
             costs.put(roster.get(i), 25 + i * 25);
         }
-        return new IZombieGame(roster, costs);
+        return new IZombieGame(roster, costs, couchPlay);
     }
 
     private List<ZombieType> iZombieRoster(int level) {
@@ -96,7 +101,7 @@ public class MinigameController {
         return finishIfOver();
     }
 
-    private boolean finishIfOver() {
+    public boolean finishIfOver() {
         boolean over = isOver();
         if (!over) {
             return false;
@@ -115,6 +120,36 @@ public class MinigameController {
         System.out.println(won ? "Minigame complete!" : "Minigame failed.");
         activeGame = null;
         return true;
+    }
+
+    public MinigameSession getActiveGame() {
+        return activeGame;
+    }
+
+    public String getActiveName() {
+        return activeName;
+    }
+
+    public int getActiveLevel() {
+        return activeLevel;
+    }
+
+    public boolean advanceTime(int ticks) {
+        if (activeGame == null || ticks <= 0) {
+            return activeGame == null;
+        }
+        if (activeGame instanceof VasebreakerGame game) {
+            game.tick(ticks);
+        } else if (activeGame instanceof WallnutBowlingGame game) {
+            game.tick(ticks);
+        } else if (activeGame instanceof IZombieGame game) {
+            game.tick(ticks);
+        } else if (activeGame instanceof BeghouledGame game) {
+            game.tick(ticks);
+        } else if (activeGame instanceof ZombotanyGame game) {
+            game.tick(ticks);
+        }
+        return finishIfOver();
     }
 
     private boolean isOver() {

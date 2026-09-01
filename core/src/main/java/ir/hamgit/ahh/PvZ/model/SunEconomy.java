@@ -1,6 +1,8 @@
 package ir.hamgit.ahh.PvZ.model;
 import ir.hamgit.ahh.PvZ.model.quest.LevelQuestTelemetry;
 import ir.hamgit.ahh.PvZ.model.entities.Plant;
+import ir.hamgit.ahh.PvZ.model.entities.Zombie;
+
 import ir.hamgit.ahh.PvZ.model.enums.SunType;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,8 +61,8 @@ class SunEconomy {
 
     private SunType rollSunType() {
         double r = Math.random();
-        if (r < 2) {
-            return SunType.RADIOACTIVE;
+        if (r < 0.80) {
+            return SunType.NORMAL;
         } else if (r < 0.95) {
             return SunType.SPECIAL;
         }
@@ -144,16 +146,22 @@ class SunEconomy {
         }
     }
 
+    List<Sun> getSuns() {
+        return List.copyOf(suns);
+    }
+
     int getSunAmount() {
         return sunAmount;
     }
 
+     
     int stealSun(int amount) {
         int stolen = Math.min(sunAmount, Math.max(0, amount));
         sunAmount -= stolen;
         return stolen;
     }
 
+     
     int stealNearestFallingSun(int lane, double x) {
         for (Sun sun : suns) {
             boolean nearby = !sun.isCollected() && sun.getLane() == lane

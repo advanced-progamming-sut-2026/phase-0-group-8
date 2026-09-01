@@ -15,7 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-
+ 
 public final class QuestService {
 
     public enum Category { STORY, EPIC, DAILY, REPEATABLE }
@@ -199,7 +199,7 @@ public final class QuestService {
         increment(user, "repeat_games", 1);
     }
 
-    /** Evaluates all twenty spreadsheet quests from one finished session. */
+     
     public static void recordLevelOutcome(User user, Board board, Set<PlantType> selected,
                                           ChapterType chapter, boolean won) {
         prepareDaily(user);

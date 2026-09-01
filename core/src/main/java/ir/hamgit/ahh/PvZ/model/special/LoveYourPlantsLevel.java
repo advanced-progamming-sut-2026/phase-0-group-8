@@ -28,6 +28,10 @@ public class LoveYourPlantsLevel extends SpecialLevelHandler {
         return lossCount >= maxPlantLosses;
     }
 
+    public int getMaxPlantLosses() {
+        return maxPlantLosses;
+    }
+
     public int getLossCount() {
         return lossCount;
     }

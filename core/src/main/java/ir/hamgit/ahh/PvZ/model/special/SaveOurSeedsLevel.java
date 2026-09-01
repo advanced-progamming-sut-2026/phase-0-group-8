@@ -89,6 +89,10 @@ public class SaveOurSeedsLevel extends SpecialLevelHandler {
             && !def.isCanPlantOnWater();
     }
 
+    public List<Plant> getProtectedPlants() {
+        return List.copyOf(protectedPlants);
+    }
+
     @Override
     public boolean checkCustomLoss(Board board) {
         return failed;

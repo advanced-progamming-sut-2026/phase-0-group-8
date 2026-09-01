@@ -1,0 +1,71 @@
+plugins {
+  id 'application'
+}
+
+application {
+  mainClass = 'ir.hamgit.ahh.PvZ.server.PhaseThreeServerMain'
+}
+
+dependencies {
+  implementation project(':core')
+}
+
+run {
+  workingDir = rootProject.projectDir
+  standardInput = System.in
+  dependsOn ':core:classes'
+  classpath = files(sourceSets.main.output, project(':core').sourceSets.main.output,
+    configurations.runtimeClasspath)
+  ['pvz.server.host', 'pvz.server.port', 'pvz.server.data'].each { propertyName ->
+    if (System.getProperty(propertyName) != null) {
+      systemProperty propertyName, System.getProperty(propertyName)
+    }
+  }
+}
+
+tasks.register('serverAllJar', Jar) {
+  group = 'distribution'
+  description = 'Builds a self-contained Phase 3 server JAR with the current core classes.'
+  archiveClassifier.set('all')
+  dependsOn ':core:classes'
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+  from sourceSets.main.output
+  from project(':core').sourceSets.main.output.classesDirs
+  from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+  exclude 'assets/**'
+  exclude 'META-INF/INDEX.LIST', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+  manifest {
+    attributes 'Main-Class': application.mainClass.get()
+  }
+}
+
+tasks.named('jar', Jar) {
+  description = 'Builds a self-contained Phase 3 server JAR.'
+  dependsOn ':core:classes'
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+  from project(':core').sourceSets.main.output.classesDirs
+  from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+  exclude 'assets/**'
+  exclude 'META-INF/INDEX.LIST', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+  manifest {
+    attributes 'Main-Class': application.mainClass.get()
+  }
+}
+
+tasks.named('assemble') {
+  dependsOn tasks.named('serverAllJar')
+}
+
+tasks.register('phase3Test', JavaExec) {
+  group = 'verification'
+  description = 'Runs dependency-free Phase 3 integration and rules tests.'
+  dependsOn testClasses
+  classpath = sourceSets.test.runtimeClasspath
+  mainClass = 'ir.hamgit.ahh.PvZ.server.PhaseThreeServerTestSuite'
+  enableAssertions = true
+  if (System.getProperty('pvz.test.dir') != null) {
+    systemProperty 'pvz.test.dir', System.getProperty('pvz.test.dir')
+  }
+}
+
+check.dependsOn phase3Test

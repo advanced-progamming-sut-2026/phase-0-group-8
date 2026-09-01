@@ -127,6 +127,11 @@ public class Tile {
         return reward;
     }
 
+     
+    public int getGraveRewardType() {
+        return graveReward;
+    }
+
     public boolean hasNecromancy() {
         return hasNecromancy;
     }

@@ -68,7 +68,7 @@ class ZombieAbilitySupport {
     void throwOctopusAtPlant(Board board, Zombie octopus) {
         Plant target = nearestPlantInLane(board, octopus.getLane());
         if (target != null) {
-            target.freezeCompletely();
+            target.coverWithOctopus();
         }
     }
 
