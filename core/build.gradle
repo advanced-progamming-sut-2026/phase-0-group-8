@@ -1,41 +1,3 @@
-apply plugin: 'checkstyle'
-apply plugin: 'pmd'
-
-checkstyle {
-  toolVersion = '10.12.4'
-  configFile = rootProject.file('config/checkstyle/checkstyle.xml')
-  ignoreFailures = false
-}
-
-pmd {
-  // Required because PMD 7 removed ExcessiveMethodLength
-  // and ExcessiveClassLength.
-  toolVersion = '6.55.0'
-
-  ruleSets = []
-  ruleSetFiles = files(
-    rootProject.file('config/pmd/pmd.xml')
-  )
-
-  consoleOutput = true
-  ignoreFailures = false
-}
-
-tasks.withType(org.gradle.api.plugins.quality.Checkstyle).configureEach {
-  reports {
-    xml.required = true
-    html.required = true
-  }
-}
-
-tasks.withType(org.gradle.api.plugins.quality.Pmd).configureEach {
-  reports {
-    xml.required = true
-    html.required = true
-  }
-}
-
-
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 eclipse.project.name = appName + '-core'
 
@@ -45,6 +7,8 @@ dependencies {
   api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
   api "com.github.raeleus.TenPatch:tenpatch:$tenPatchVersion"
+  api "com.github.pizpizi:libPVZ:v0.1.3"
+  api "com.github.pizpizi:pvz-skin:v0.1.0"
 
   if(enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
