@@ -1,0 +1,1361 @@
+{
+  "version": 1,
+  "resolution": "768",
+  "plants": {
+    "SUNFLOWER": {
+      "pam": "768/INITIAL/PLANT/SUNFLOWER/SUNFLOWER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "special",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "TWIN_SUNFLOWER": {
+      "pam": "768/INITIAL/PLANT/SUNFLOWER_TWIN/SUNFLOWER_TWIN.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "special",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "SUN_SHROOM": {
+      "pam": "768/FULL/PLANT/SUNSHROOM/SUNSHROOM.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle_stage1",
+        "attack": "special_stage1",
+        "plantFood": "plantfood_stage1",
+        "death": "idle_stage1"
+      }
+    },
+    "PRIMAL_SUNFLOWER": {
+      "pam": "768/FULL/PLANT/PRIMAL_SUNFLOWER/PRIMAL_SUNFLOWER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "special",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "GOLD_BLOOM": {
+      "pam": "768/INITIAL/PLANT/GOLDBLOOM/GOLDBLOOM.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "idle",
+        "death": "idle"
+      }
+    },
+    "PEASHOOTER": {
+      "pam": "768/INITIAL/PLANT/PEASHOOTER/PEASHOOTER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "REPEATER": {
+      "pam": "768/INITIAL/PLANT/REPEATER/REPEATER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "THREEPEATER": {
+      "pam": "768/INITIAL/PLANT/THREEPEATER/THREEPEATER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "SNOW_PEA": {
+      "pam": "768/INITIAL/PLANT/SNOWPEA/SNOWPEA.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "ROTOBAGA": {
+      "pam": "768/FULL/PLANT/ROTORUTABAGA/ROTORUTABAGA.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood_on",
+        "death": "idle"
+      }
+    },
+    "PEA_POD": {
+      "pam": "768/FULL/PLANT/PEAPOD/PEAPOD.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "SPLIT_PEA": {
+      "pam": "768/FULL/PLANT/SPLITPEA/SPLITPEA.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "CITRON": {
+      "pam": "768/FULL/PLANT/CITRON/CITRON.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "charge"
+      }
+    },
+    "CAULIPOWER": {
+      "pam": "768/INITIAL/PLANT/CAULIPOWER/CAULIPOWER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle1_1",
+        "attack": "attack",
+        "plantFood": "plantfood_start",
+        "death": "idle1_1"
+      }
+    },
+    "ELECTRIC_BLUEBERRY": {
+      "pam": "768/INITIAL/PLANT/ELECTRICBLUEBERRY/ELECTRICBLUEBERRY.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle1_1",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle1_1"
+      }
+    },
+    "BOWLING_BULB": {
+      "pam": "768/FULL/PLANT/BOWLINGBULB/BOWLINGBULB.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "special",
+        "plantFood": "plantfood_on",
+        "death": "idle"
+      }
+    },
+    "CACTUS": {
+      "pam": "768/INITIAL/PLANT/CACTUS/CACTUS.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "FIRE_PEASHOOTER": {
+      "pam": "768/INITIAL/PLANT/FIREPEASHOOTER/FIREPEASHOOTER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "STARFRUIT": {
+      "pam": "768/INITIAL/PLANT/STARFRUIT/STARFRUIT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "GOO_PEASHOOTER": {
+      "pam": "768/INITIAL/PLANT/GOOPEASHOOTER/GOOPEASHOOTER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "MEGA_GATLING_PEA": {
+      "pam": "768/INITIAL/PLANT/MEGAGATLING/MEGAGATLING.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "SEA_SHROOM": {
+      "pam": "768/FULL/PLANT/SEASHROOM/SEASHROOM.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "pf",
+        "death": "death"
+      }
+    },
+    "PUFF_SHROOM": {
+      "pam": "768/INITIAL/PLANT/PUFFSHROOM/PUFFSHROOM.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle_stage1",
+        "attack": "special_stage1",
+        "plantFood": "plantfood",
+        "death": "idle_stage1"
+      }
+    },
+    "FUME_SHROOM": {
+      "pam": "768/INITIAL/PLANT/FUMESHROOM/FUMESHROOM.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "special",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "CABBAGE_PULT": {
+      "pam": "768/INITIAL/PLANT/CABBAGEPULT/CABBAGEPULT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "KERNEL_PULT": {
+      "pam": "768/INITIAL/PLANT/KERNALPULT/KERNALPULT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "MELON_PULT": {
+      "pam": "768/INITIAL/PLANT/MELONPULT/MELONPULT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "WINTER_MELON": {
+      "pam": "768/FULL/PLANT/WINTERMELON/WINTERMELON.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "PEPPER_PULT": {
+      "pam": "768/FULL/PLANT/PEPPERPULT/PEPPERPULT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "POTATO_MINE": {
+      "pam": "768/INITIAL/PLANT/POTATOMINE/POTATOMINE.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "plant"
+      }
+    },
+    "PRIMAL_POTATO_MINE": {
+      "pam": "768/FULL/PLANT/PRIMAL_POTATOMINE/PRIMAL_POTATOMINE.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "plant"
+      }
+    },
+    "CHERRY_BOMB": {
+      "pam": "768/FULL/PLANT/CHERRYBOMB/CHERRYBOMB.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "idle",
+        "death": "idle"
+      }
+    },
+    "SQUASH": {
+      "pam": "768/INITIAL/PLANT/SQUASH/SQUASH.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "idle",
+        "plantFood": "plantfood_jump_down_right",
+        "death": "idle"
+      }
+    },
+    "GRAPESHOT": {
+      "pam": "768/INITIAL/PLANT/GRAPESHOT/GRAPESHOT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "idle",
+        "death": "idle"
+      }
+    },
+    "JALAPENO": {
+      "pam": "768/INITIAL/PLANT/JALAPENO/JALAPENO.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "idle",
+        "death": "idle"
+      }
+    },
+    "DOOM_SHROOM": {
+      "pam": "768/FULL/PLANT/DOOMSHROOM/DOOMSHROOM.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "stage1_idle",
+        "attack": "stage1_explode",
+        "plantFood": "stage1_spawn",
+        "death": "stage1_spawn"
+      }
+    },
+    "TANGLE_KELP": {
+      "pam": "768/FULL/PLANT/TANGLEKELP/TANGLEKELP.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "ICEBERG_LETTUCE": null,
+    "BONK_CHOY": {
+      "pam": "768/INITIAL/PLANT/BONKCHOY/BONKCHOY.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "PHAT_BEET": {
+      "pam": "768/FULL/PLANT/PHATBEETS/PHATBEETS.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "CHOMPER": {
+      "pam": "768/INITIAL/PLANT/CHOMPER/CHOMPER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "special",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "WASABI_WHIP": {
+      "pam": "768/INITIAL/PLANT/WASABIWHIP/WASABIWHIP.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "KIWIBEAST": {
+      "pam": "768/INITIAL/PLANT/KIWIBEAST/KIWIBEAST.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle_stage1_",
+        "attack": "attack_stage1",
+        "plantFood": "plantfood_stage3",
+        "death": "idle_stage1_"
+      }
+    },
+    "WALL_NUT": {
+      "pam": "768/INITIAL/PLANT/WALLNUT/WALLNUT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "idle",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "TALL_NUT": {
+      "pam": "768/FULL/PLANT/TALLNUT/TALLNUT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "idle",
+        "plantFood": "idle",
+        "death": "idle"
+      }
+    },
+    "ENDURIAN": {
+      "pam": "768/FULL/PLANT/ENDURIAN/ENDURIAN.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack_start",
+        "plantFood": "plantfood_on",
+        "death": "idle"
+      }
+    },
+    "GARLIC": {
+      "pam": "768/FULL/PLANT/GARLIC/GARLIC.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "idle",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "SWEET_POTATO": {
+      "pam": "768/INITIAL/PLANT/SWEETPOTATO/SWEETPOTATO.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "idle",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "EXPLODE_O_NUT": {
+      "pam": "768/INITIAL/PLANT/EXPLODEONUT/EXPLODEONUT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "idle",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "PUMPKIN": {
+      "pam": "768/INITIAL/PLANT/PUMPKIN/PUMPKIN.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "idle",
+        "plantFood": "idle",
+        "death": "idle"
+      }
+    },
+    "SUN_BEAN": {
+      "pam": "768/FULL/PLANT/SUNBEAN/SUNBEAN.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "idle",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "TORCHWOOD": {
+      "pam": "768/INITIAL/PLANT/TORCHWOOD/TORCHWOOD.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "idle",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "MAGNET_SHROOM": {
+      "pam": "768/FULL/PLANT/MAGNETSHROOM/MAGNETSHROOM.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "special",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "HYPNO_SHROOM": {
+      "pam": "768/INITIAL/PLANT/HYPNOSHROOM/HYPNOSHROOM.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "idle",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "CAT_TAIL": null,
+    "IMITATER": {
+      "pam": "768/INITIAL/PLANT/IMITATER/IMITATER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "idle",
+        "death": "idle"
+      }
+    },
+    "ICE_SHROOM": {
+      "pam": "768/FULL/PLANT/ICESHROOM/ICESHROOM.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "LILY_PAD": {
+      "pam": "768/FULL/PLANT/LILYPAD/LILYPAD.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "idle",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "HOT_POTATO": {
+      "pam": "768/FULL/PLANT/HOTPOTATO/HOTPOTATO.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "attack",
+        "plantFood": "idle",
+        "death": "idle"
+      }
+    },
+    "GRAVE_BUSTER": {
+      "pam": "768/INITIAL/PLANT/GRAVEBUSTER/GRAVEBUSTER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "attack",
+        "attack": "attack",
+        "plantFood": "attack",
+        "death": "attack"
+      }
+    },
+    "MARIGOLD": {
+      "pam": "768/INITIAL/PLANT/MARIGOLD/MARIGOLD.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "attack": "special",
+        "plantFood": "plantfood",
+        "death": "idle"
+      }
+    },
+    "ENLIGHTEN_MINT": {
+      "pam": "768/INITIAL/EMPOWERMINTS/PLANT/ENLIGHTENMINT/ENLIGHTENMINT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "loop",
+        "attack": "intro",
+        "plantFood": "intro",
+        "death": "intro"
+      }
+    },
+    "APPEASE_MINT": {
+      "pam": "768/INITIAL/EMPOWERMINTS/PLANT/APPEASEMINT/APPEASEMINT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "loop",
+        "attack": "intro",
+        "plantFood": "intro",
+        "death": "intro"
+      }
+    },
+    "ARMA_MINT": {
+      "pam": "768/INITIAL/EMPOWERMINTS/PLANT/ARMAMINT/ARMAMINT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "loop",
+        "attack": "intro",
+        "plantFood": "intro",
+        "death": "intro"
+      }
+    },
+    "BOMBARD_MINT": {
+      "pam": "768/INITIAL/EMPOWERMINTS/PLANT/BOMBARDMINT/BOMBARDMINT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "loop",
+        "attack": "intro",
+        "plantFood": "intro",
+        "death": "intro"
+      }
+    },
+    "ENFORCE_MINT": {
+      "pam": "768/INITIAL/EMPOWERMINTS/PLANT/ENFORCEMINT/ENFORCEMINT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "loop",
+        "attack": "intro",
+        "plantFood": "intro",
+        "death": "intro"
+      }
+    },
+    "REINFORCE_MINT": {
+      "pam": "768/INITIAL/EMPOWERMINTS/PLANT/REINFORCEMINT/REINFORCEMINT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "loop",
+        "attack": "intro",
+        "plantFood": "intro",
+        "death": "intro"
+      }
+    },
+    "ENCHANT_MINT": {
+      "pam": "768/INITIAL/EMPOWERMINTS/PLANT/ENCHANTMINT/ENCHANTMINT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "loop",
+        "attack": "intro",
+        "plantFood": "intro",
+        "death": "intro"
+      }
+    },
+    "PIERCE_MINT": {
+      "pam": "768/INITIAL/EMPOWERMINTS/PLANT/SPEARMINT/SPEARMINT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "loop",
+        "attack": "intro",
+        "plantFood": "intro",
+        "death": "intro"
+      }
+    },
+    "CATTAIL_MINT": {
+      "pam": "768/INITIAL/EMPOWERMINTS/PLANT/AILMINT/AILMINT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "loop",
+        "attack": "intro",
+        "plantFood": "intro",
+        "death": "intro"
+      }
+    }
+  },
+  "zombies": {
+    "NORMAL": {
+      "pam": "768/INITIAL/ZOMBIE/ZOMBIE_EGYPT_BASIC/ZOMBIE_EGYPT_BASIC.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "CONEHEAD": {
+      "pam": "768/FULL/ZOMBIE/LNY_CONEHEAD_ZOMBIE/LNY_CONEHEAD_ZOMBIE.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "BUCKETHEAD": {
+      "pam": "768/FULL/ZOMBIE/LNY_BUCKETHEAD_ZOMBIE/LNY_BUCKETHEAD_ZOMBIE.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "SUN_PRODUCER": {
+      "pam": "768/INITIAL/ZOMBIE/ZOMBIE_EGYPT_RA/ZOMBIE_EGYPT_RA.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "power",
+        "die": "die"
+      }
+    },
+    "KNIGHT": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_DARK_BASIC/ZOMBIE_DARK_BASIC.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "BLOCKHEAD": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_ICEAGE_BASIC_BRICK/ZOMBIE_ICEAGE_BASIC_BRICK.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "GARGANTUAR": {
+      "pam": "768/FULL/ZOMBIE/GARGANTUAR/GARGANTUAR.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "IMP": {
+      "pam": "768/INITIAL/ZOMBIE/ZOMBIE_EGYPT_IMP/ZOMBIE_EGYPT_IMP.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "ALL_STAR": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_MODERN_ALLSTAR/ZOMBIE_MODERN_ALLSTAR.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "kick",
+        "die": "die"
+      }
+    },
+    "ARCADE": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_80S_ARCADE/ZOMBIE_80S_ARCADE.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "PARASOL": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_LOSTCITY_JANE/ZOMBIE_LOSTCITY_JANE.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "TURQUOISE": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_LOSTCITY_CRYSTALSKULL/ZOMBIE_LOSTCITY_CRYSTALSKULL.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "power",
+        "die": "die"
+      }
+    },
+    "PROSPECTOR": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_PROSPECTOR/ZOMBIE_PROSPECTOR.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "PIANIST": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_PIANO/ZOMBIE_PIANO.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "idle",
+        "eat": "play",
+        "special": "play",
+        "die": "die"
+      }
+    },
+    "NEWSPAPER": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_MODERN_NEWSPAPER/ZOMBIE_MODERN_NEWSPAPER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle_newspaper",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle_newspaper",
+        "die": "die"
+      }
+    },
+    "BARREL_ROLLER": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_PIRATE_BARREL_PUSHER/ZOMBIE_PIRATE_BARREL_PUSHER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "walk",
+        "die": "die"
+      }
+    },
+    "RA_ZOMBIE": {
+      "pam": "768/INITIAL/ZOMBIE/ZOMBIE_EGYPT_RA/ZOMBIE_EGYPT_RA.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "power",
+        "die": "die"
+      }
+    },
+    "EXPLORER": {
+      "pam": "768/INITIAL/ZOMBIE/ZOMBIE_EXPLORER/ZOMBIE_EXPLORER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "TOMBRAISER": {
+      "pam": "768/INITIAL/ZOMBIE/ZOMBIE_EGYPT_TOMBRAISER/ZOMBIE_EGYPT_TOMBRAISER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "power",
+        "die": "die"
+      }
+    },
+    "DODO_RIDER": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_ICEAGE_DODORIDER/ZOMBIE_ICEAGE_DODORIDER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "HUNTER": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_ICEAGE_HUNTER/ZOMBIE_ICEAGE_HUNTER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "throw",
+        "die": "die"
+      }
+    },
+    "TROGLOBITE": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_ICEAGE_TROGLOBITE/ZOMBIE_ICEAGE_TROGLOBITE.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "FISHERMAN": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_BEACH_FISHERMAN/ZOMBIE_BEACH_FISHERMAN.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "intro",
+        "eat": "intro",
+        "special": "toss",
+        "die": "die"
+      }
+    },
+    "SNORKEL": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_BEACH_SNORKELER/ZOMBIE_BEACH_SNORKELER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "OCTOPUS": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_BEACH_OCTOPUS/ZOMBIE_BEACH_OCTOPUS.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "toss",
+        "die": "die"
+      }
+    },
+    "JESTER": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_DARK_JESTER/ZOMBIE_DARK_JESTER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "spin",
+        "die": "die"
+      }
+    },
+    "WIZARD": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_DARK_WIZARD/ZOMBIE_DARK_WIZARD.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "sheep",
+        "die": "die"
+      }
+    },
+    "KING": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_DARK_KING/ZOMBIE_DARK_KING.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "intro",
+        "eat": "intro",
+        "special": "special",
+        "die": "die"
+      }
+    },
+    "DRAGON_IMP": {
+      "pam": "768/FULL/ZOMBIE/ZOMBIE_DARK_IMP_DRAGON/ZOMBIE_DARK_IMP_DRAGON.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "walk",
+        "eat": "eat",
+        "special": "idle",
+        "die": "die"
+      }
+    },
+    "ZOMBOTANY_PEA": {
+      "pam": "768/INITIAL/PLANT/PEASHOOTER/PEASHOOTER.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "idle",
+        "eat": "attack",
+        "special": "attack",
+        "die": "idle"
+      }
+    },
+    "ZOMBOTANY_WALLNUT": {
+      "pam": "768/INITIAL/PLANT/WALLNUT/WALLNUT.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "idle",
+        "eat": "idle",
+        "special": "idle",
+        "die": "idle"
+      }
+    },
+    "ZOMBOTANY_JALAPENO": {
+      "pam": "768/INITIAL/PLANT/JALAPENO/JALAPENO.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "idle",
+        "eat": "attack",
+        "special": "attack",
+        "die": "idle"
+      }
+    },
+    "ZOMBOTANY_SQUASH": {
+      "pam": "768/INITIAL/PLANT/SQUASH/SQUASH.PAM",
+      "canvas": [
+        390,
+        390
+      ],
+      "clips": {
+        "idle": "idle",
+        "walk": "idle",
+        "eat": "idle",
+        "special": "idle",
+        "die": "idle"
+      }
+    }
+  },
+  "notes": {
+    "CAT_TAIL": "No matching PAM is present in the supplied animations.json; procedural fallback stays active until you map it manually.",
+    "ICEBERG_LETTUCE": "No matching PAM is present in the supplied animations.json; procedural fallback stays active until you map it manually.",
+    "ZOMBOTANY": "Bonus Zombotany zombies intentionally reuse matching plant PAMs."
+  }
+}

@@ -1,0 +1,8 @@
+Copy the extracted PvZ2 atlas PNG files DIRECTLY into this directory.
+
+Expected shape:
+assets/pvz/ATLASES/<many .png files>
+
+libPVZ's AtlasLocator scans only direct files in ATLASES, so do not leave the
+PNG files only inside nested subdirectories. The provided PowerShell installer
+will flatten nested atlas PNGs by filename if necessary.

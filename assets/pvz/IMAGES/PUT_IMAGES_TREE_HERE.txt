@@ -1,0 +1,7 @@
+Copy the extracted PvZ2 IMAGES tree here WITHOUT rearranging it.
+
+Expected examples after copying:
+assets/pvz/IMAGES/768/INITIAL/PLANT/PEASHOOTER/PEASHOOTER.PAM
+assets/pvz/IMAGES/768/INITIAL/ZOMBIE/ZOMBIE_EGYPT_BASIC/ZOMBIE_EGYPT_BASIC.PAM
+
+Keep all PNG/PAM files and their original subdirectory structure.
